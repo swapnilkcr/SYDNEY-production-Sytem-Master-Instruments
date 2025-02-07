@@ -1,0 +1,282 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const staffSelect = document.getElementById('staff-select');
+  const jobSelect = document.getElementById('job-select');
+  const startBtn = document.getElementById('start-btn');
+  const stopBtn = document.getElementById('stop-btn');
+  const viewBtn = document.getElementById('view-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const exportBtn = document.getElementById('export-btn');
+  const viewRunningJobsBtn = document.getElementById('view-running-jobs-btn'); // Button for running jobs
+  const recordsTable = document.getElementById('records-table');
+  const tableBody = recordsTable.querySelector('tbody');  // Table body for records
+  const messageDiv = document.getElementById('message');
+
+  const activeSessions = {};  // Track active sessions
+  
+  
+  function clearTable() {
+    tableBody.innerHTML = '';
+  }
+
+  // Fetch staff and populate the dropdown
+  function fetchStaff() {
+    fetch('http://localhost:3002/get-staff', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.staff && data.staff.length > 0) {
+          data.staff.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            staffSelect.appendChild(option);
+          });
+        } else {
+          messageDiv.textContent = 'No staff data available.';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching staff:', error);
+        messageDiv.textContent = 'Error fetching staff: ' + error.message;
+      });
+  }
+
+  // Static job list
+  const jobs = ['Job1', 'Job2', 'Job3'];
+  jobs.forEach(job => {
+    const option = document.createElement('option');
+    option.value = job;
+    option.textContent = job;
+    jobSelect.appendChild(option);
+  });
+
+  fetchStaff();
+
+  // Function to format date to human-readable format
+  function formatDate(date) {
+    const options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    };
+    return new Date(date).toLocaleString('en-US', options).replace(',', '');
+  }
+
+
+
+
+
+
+
+
+  // View Running Jobs Logic (view running jobs button)
+  //viewRunningJobsBtn.addEventListener('click', () => {
+
+  function updateRunningJobs() {
+    clearTable();
+    messageDiv.textContent = 'Loading running jobs...';
+
+    fetch('http://localhost:3002/view-running-jobs', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch running jobs.');
+        return response.json();
+      })
+      .then(data => {
+        if (data.runningJobs && data.runningJobs.length > 0) {
+          data.runningJobs.forEach(job => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${job.staffName}</td>
+              <td>${job.jobId}</td>
+              <td>${job.startTime}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+          messageDiv.textContent = '';
+        } else {
+          messageDiv.textContent = 'No running jobs found.';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching running jobs:', error);
+        messageDiv.textContent = 'Error fetching running jobs: ' + error.message;
+      });
+  }
+
+  // Start button logic
+  startBtn.addEventListener('click', () => {
+    const staffName = staffSelect.value;
+    const jobId = jobSelect.value;
+
+    if (!staffName || !jobId) {
+      messageDiv.textContent = 'Please select a staff member and a job before starting the clock.';
+      return;
+    }
+
+    const sessionKey = `${staffName}|${jobId}`;
+    if (activeSessions[sessionKey]) {
+      messageDiv.textContent = `${staffName} is already working on ${jobId}.`;
+      return;
+    }
+
+    const startTime = new Date();
+    const formattedStartTime = formatDate(startTime);
+
+    stopBtn.disabled = false;
+    messageDiv.textContent = `Clock started for ${staffName} on ${jobId} at: ${formattedStartTime}`;
+    activeSessions[sessionKey] = { startTime, formattedStartTime };
+
+    // Send start session to the backend
+    fetch('http://localhost:3002/start-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staffName, jobId, startTime: formattedStartTime }),
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to start the job.');
+        return response.json();
+      })
+      .then(result => {
+        console.log('Job started successfully:', result);
+      })
+      .catch(error => {
+        console.error('Error starting the job:', error);
+        messageDiv.textContent = `Error starting the job: ${error.message}`;
+      });
+
+    console.log('Active sessions after start:', activeSessions);
+  });
+
+  // Stop button logic
+  stopBtn.addEventListener('click', () => {
+    const staffName = staffSelect.value;
+    const jobId = jobSelect.value;
+
+    if (!staffName || !jobId) {
+      messageDiv.textContent = 'Please select a staff member and a job before stopping the clock.';
+      return;
+    }
+
+    const sessionKey = `${staffName}|${jobId}`;
+    const session = activeSessions[sessionKey];
+    if (!session) {
+      messageDiv.textContent = `${staffName} is not currently working on ${jobId}.`;
+      return;
+    }
+
+    const stopTime = new Date();
+    const formattedStopTime = formatDate(stopTime);
+    messageDiv.textContent += `\nClock stopped for ${staffName} on ${jobId} at: ${formattedStopTime}`;
+
+    const data = {
+      staffName,
+      jobId,
+      startTime: session.formattedStartTime,
+      stopTime: formattedStopTime,
+    };
+
+    // Send stop session to the backend
+    fetch('http://localhost:3002/stop-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to stop the job.');
+        return response.json();
+      })
+      .then(result => {
+        console.log('Job stopped successfully:', result);
+        delete activeSessions[sessionKey];
+	updateRunningJobs();
+      })
+      .catch(error => {
+        console.error('Error stopping the job:', error);
+        messageDiv.textContent = `Error stopping the job: ${error.message}`;
+      });
+
+    console.log('Active sessions after stop:', activeSessions);
+  });
+
+
+// View Running Jobs
+  viewRunningJobsBtn.addEventListener('click', updateRunningJobs);
+
+  // View ClockIn/ClockOut Logic
+  viewBtn.addEventListener('click', () => {
+    const tableBody = document.querySelector('#records-table tbody');
+    const messageDiv = document.getElementById('message');
+    tableBody.innerHTML = '';  // Clear any existing rows
+    recordsTable.style.display = 'none';  // Hide the table initially
+    messageDiv.textContent = 'Loading clock-in/clock-out data...';  // Show loading message
+
+    fetch('http://localhost:3002/view-times', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch records.');
+        return response.json();
+      })
+      .then(data => {
+        if (data.records && data.records.length > 0) {
+          recordsTable.style.display = 'block';  // Show the table
+          data.records.forEach(record => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${record.staffName}</td>
+              <td>${record.jobId}</td>
+              <td>${record.startTime}</td>
+              <td>${record.stopTime}</td>
+              <td>${record.totalHoursWorked} hrs</td>
+            `;
+            tableBody.appendChild(row);  // Append row to the table body
+          });
+          messageDiv.textContent = '';  // Clear the loading message
+        } else {
+          messageDiv.textContent = 'No records found.';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching records:', error);
+        messageDiv.textContent = `Error fetching records: ${error.message}`;
+      });
+  });
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = 'Exporting data to Excel...';
+  
+    fetch('http://localhost:3002/export-to-excel', {
+      method: 'GET',
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to export data.');
+        return response.blob(); // Fetch the response as a Blob
+      })
+      .then(blob => {
+        // Create a URL for the Blob and trigger the download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'clock_in_data.xlsx'; // Filename for the exported file
+        link.click();
+  
+        messageDiv.textContent = 'Export completed!';
+      })
+      .catch(error => {
+        console.error('Error exporting data:', error);
+        messageDiv.textContent = 'Error exporting data: ' + error.message;
+      });
+  });
+  
+});

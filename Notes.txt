@@ -1,0 +1,89 @@
+CLOCKINOUT table : Stores all the data of jobs run, individually.(labor cost is shown only after ENding the job)
+
+JObTable : After a job is ended for all users working on it, Total labor cost is calculated and stored in it.
+
+JOBSfinished: Stores the jobs finished.
+
+
+
+
+
+
+
+////////////////
+23/01/2025 MEETING UPDATES:
+
+NEED a allocate button to allocate tasks to staff
+Only admin can access the button of allocate
+
+View button in dropdown to view AV time by searching. [DONE]
+Different per hour rate  based on who the user is.
+
+Layering for admin and staff login. [DONE]
+10minutes to subtract from working time. for tea and 3pm break
+
+Daily data backup
+
+bugs:
+1. PN table data inserts into sheet2 i.e. JOBS FINISHED , make it sheet1.[DONE]
+
+
+
+20-01-2025
+
+Multiple queries lock the database. Resolve it.
+
+
+30-01-2025
+Convert xslm files into csv
+
+
+WHen job is ended, total hoursworked and estimated time is added to JobTable
+
+ISSUES TO DEBUG
+1. WHen job is ended , totalhoursworked and estimated time shows null in JOBSTABLE.
+2. laborcost, total labor cost
+
+
+
+
+
+
+---------------------------
+06/02/2025:
+GIT branches. 
+
+Set url to IP address in settings of vscode to 10.0.2.161.
+
+--------------------------------
+
+# Navigate to your project folder
+cd C:\clockin_test\app
+
+# Create and switch to the develop branch
+git checkout -b develop
+
+# Make changes (e.g., update backend.py)
+
+# Stage and commit changes
+git add .
+git commit -m "Added new feature X"
+
+# Push to the develop branch
+git push -u origin develop
+
+# When ready for production, merge develop into main
+git checkout main
+git merge develop
+git push origin main
+
+
+
+Workflow:
+Develop and test in develop branch.
+Push changes to GitHub (origin develop).
+Merge develop into main when ready for production.
+Pull main branch in the production environment.
+Restart the app if required.
+
+

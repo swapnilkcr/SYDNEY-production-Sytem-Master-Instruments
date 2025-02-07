@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create PDF with Multiple Images</title>
+  <link rel="stylesheet" href="Ftopdf.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Simple Form -->
+  <form id="dataForm">
+    <label for="Pno">Production number:</label><br>
+    <input type="text" id="Pno" name="Pno" required><br><br>
+    
+    <label for="Dno">Drawing Number:</label><br>
+    <input type="text" id="Dno" name="Dno" required><br><br>
+
+    <!-- Multiple Image Upload -->
+    <label for="imageUpload">Upload Images:</label><br>
+    <input type="file" id="imageUpload" name="images" accept="image/*" multiple><br><br>
+
+    <!-- Image Preview Container -->
+    <div id="imagePreview"></div>
+    
+    <button type="button">Submit</button>
+  </form>
+
+  <script>
+    // Get reference to form and image input
+    const form = document.getElementById('dataForm');
+    const imageInput = document.getElementById('imageUpload');
+    const imagePreview = document.getElementById('imagePreview');
+
+    // Event listener for image input change (display image previews)
+    imageInput.addEventListener('change', function(e) {
+      // Clear previous previews
+      imagePreview.innerHTML = '';
+
+      // Get selected files (images)
+      const files = e.target.files;
+      
+      // Loop through selected files and display previews
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+          // Create an img element for each image and set the src to the image preview
+          const imgElement = document.createElement('img');
+          imgElement.src = event.target.result;
+          imgElement.style.width = '300px';  // Set a fixed width for the preview
+          imgElement.style.marginRight = '10px';  // Spacing between images
+          
+          // Append the image to the preview container
+          imagePreview.appendChild(imgElement);
+        };
+        
+        reader.readAsDataURL(file); // Read image as base64
+      });
+    });
+
+    // Form submission event to generate the PDF
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent the form from submitting traditionally
+
+      // Get form data
+      const Pno = document.getElementById('Pno').value;
+      const Dno = document.getElementById('Dno').value;
+
+      // Get selected files (images)
+      const files = imageInput.files;
+      const images = [];
+
+      // Read each selected image
+      let imagesProcessed = 0;
+      const totalImages = files.length;
+
+      if (totalImages > 0) {
+        // Loop through all selected images
+        Array.from(files).forEach(file => {
+          const reader = new FileReader();
+
+          reader.onload = function(event) {
+            images.push(event.target.result);
+
+            imagesProcessed++;
+            // If all images are processed, create the PDF
+            if (imagesProcessed === totalImages) {
+              createPDF(Pno, Dno, images);
+            }
+          };
+
+          reader.readAsDataURL(file); // Read each image as base64
+        });
+      } else {
+        // If no images are selected, create the PDF without images
+        createPDF(Pno, Dno, images);
+      }
+    });
+
+    function createPDF(Pno, Dno, images) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Add text to the PDF
+      doc.text(`Production Number: ${Pno}`, 10, 10);
+      doc.text(`Drawing Number: ${Dno}`, 10, 20);
+
+      let yOffset = 30; // Initial Y position for the first image
+
+      // Add images to the PDF, if any
+      images.forEach((imgData, index) => {
+        // If it's not the first image, create a new page
+        if (index > 0) {
+          doc.addPage();
+        }
+
+        // Add image (x, y position, width, height, format)
+        doc.addImage(imgData, 'PNG', 10, yOffset, 180, 180); // Adjust width and height to 100x100
+      });
+
+      // Sanitize the Production Number to use as a filename
+      const sanitizedPno = Pno.replace(/[\\\/:*?"<>|]/g, '_'); // Remove any invalid filename characters
+      const filename = `${sanitizedPno}.pdf`;
+
+      // Save the generated PDF with the dynamic filename
+      doc.save(filename);
+    }
+  </script>
+
+</body>
+</html>

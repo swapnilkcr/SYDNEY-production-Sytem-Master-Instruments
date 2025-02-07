@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="add_job.css">
+    <title>PN table</title>
+    <script>
+        // Function to auto-fill CDraw from DrawingNo
+        function autoFillCDraw() {
+            var drawingNoValue = document.getElementById("draw-no").value;
+            document.getElementById("CDraw").value = drawingNoValue;  // Set CDraw value to DrawingNo
+        }
+
+        // Function to auto-fill CCells from BatteryName
+        function autoFillCCells() {
+            var batteryName = document.getElementById("no-cell").value;
+            document.getElementById("CCells").value = batteryName;  
+        }
+
+        // Function to auto-fill C-AV from AV
+        function autoFillCav() {
+            var cavValue = document.getElementById("av").value;
+            document.getElementById("Cav").value = cavValue;
+        }
+
+        // Function to auto-fill C-B$ from B$
+        function autoFillCB$() {
+            var bDollar = document.getElementById("b-price").value;
+            document.getElementById("CB$").value = bDollar;
+        }
+
+        // Function to auto-fill C-S$ from S$
+        function autoFillCS$() {
+            var sDollar = document.getElementById("s-price").value;
+            document.getElementById("CS$").value = sDollar;
+        }
+
+        // Function to auto-fill StockCode
+        function autoFillStockCode() {
+            var stockCode = document.getElementById('stock-code').value;
+            document.getElementById('CSTcode').value = stockCode;
+        }
+
+        // Function to get current input date
+        window.onload = function() {
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; // January is 0!
+            var yyyy = today.getFullYear();
+
+            // Format the date to YYYY-MM-DD
+            if (dd < 10) {
+                dd = '0' + dd;
+            }
+            if (mm < 10) {
+                mm = '0' + mm;
+            }
+
+            today = yyyy + '-' + mm + '-' + dd;
+
+            // Set the value of the input to today's date
+            document.getElementById("inputDate").value = today;
+        };
+
+        // Function to calculate WH (Watt-Hours)
+        function calculateWH() {
+            // Get the values of Volts and Ah
+            var volts = parseFloat(document.getElementById("Volts").value);
+            var ah = parseFloat(document.getElementById("ah").value);
+
+            // Calculate WH (Volts * Ah)
+            if (!isNaN(volts) && !isNaN(ah)) {
+                var wh = volts * ah;  // Multiply Volts and Ah
+                document.getElementById("wh").value = wh.toFixed(2);  // Display result in the WH input field
+            } else {
+                document.getElementById("wh").value = "";  // Clear WH if inputs are invalid
+            }
+        }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('jobForm').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const formData = {
+            inputDate: document.getElementById('inputDate').value,
+            pn: document.getElementById('pn').value,
+            noCell: document.getElementById('no-cell').value,
+            drawNo: document.getElementById('draw-no').value,
+            requDate: document.getElementById('requ-date').value,
+            cust: document.getElementById('cust').value,
+            stockCode: document.getElementById('stock-code').value,
+            qty: document.getElementById('qty').value,
+            cellCode: document.getElementById('cell-code').value,
+            bPrice: document.getElementById('b-price').value,
+            orderNo: document.getElementById('order-no').value,
+            model: document.getElementById('model').value,
+            vol: document.getElementById('Volts').value,
+            ah: document.getElementById('ah').value,
+            wh: document.getElementById('wh').value,
+            chem: document.getElementById('chem').value,
+            structure: document.getElementById('structure').value,
+            staff: document.getElementById('staff').value,
+            workhr: document.getElementById('workhr').value,
+            HRPP: document.getElementById('HRPP').value,
+            ENDDate: document.getElementById('endDate').value,
+            testTime: document.getElementById('testTime').value,
+            av: document.getElementById('av').value,
+            sPrice: document.getElementById('s-price').value,
+            salesman: document.getElementById('salesman').value,
+            customerCode: document.getElementById('customer-code').value,
+            orderDate: document.getElementById('orderDate').value
+        };
+
+        fetch('http://10.0.2.161:3002/add_job', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message);
+                document.getElementById('jobForm').reset();
+                closeModal('job');
+            } else if (data.error) {
+                alert(data.error);
+            }
+        });
+    });
+});
+
+    </script>
+</head>
+
+<body>
+    <div class="header">
+        <header>MASTER INSTRUMENTS</header>
+      </div>
+
+    <div class="topnav">
+        <a href="SampleAVTimeList.xlsx">AVTimeList</a>
+    </div>
+    
+    <div class="form1">
+        <form id="jobForm">
+        <header class="page-header">PN DATA</header>
+
+        <!-- Form Fields -->
+        <label for="inputDate">INPUT DATE</label>
+        <input type="date" id="inputDate">
+
+        <label for="pn">Production Number</label>
+        <input type="text" name="ProductionNumber" id="pn" placeholder="Enter Production Number">
+
+        <label for="no-cell">No/Cell</label>
+        <input type="text" name="BatteryName" id="no-cell" placeholder="Enter BatteryName" oninput="autoFillCCells()">
+
+        <label for="draw-no">Drawing Number</label>
+        <input type="text" name="DrawingNo" id="draw-no" placeholder="Enter DrawingNo" oninput="autoFillCDraw()">
+
+        <label for="requ-date">Required Date</label>
+        <input type="date" id="requ-date">
+
+        <label for="cust">Customer</label>
+        <input type="text" name="cust" id="cust" placeholder="Enter customer name">
+
+        <label for="stock-code">Stock code</label>
+        <input type="text" id="stock-code" placeholder="Enter StockCode" oninput="autoFillStockCode()">
+
+        <label for="Quantity">Quantity</label>
+        <input type="number" id="qty" placeholder="Enter Quantity">
+
+        <label for="cellcode">Cell code</label>
+        <input type="text" id="cell-code" placeholder="Enter cellcode">
+
+        <label for="B$">B$</label>
+        <input type="number" id="b-price" oninput="autoFillCB$()">
+
+        <label for="Order No">Order no</label>
+        <input type="number" id="order-no" placeholder="Enter Order number">
+
+        <label for="model">Model</label>
+        <input type="text" name="Model" id="model">
+
+        <label for="Volts">Volts</label>
+        <input type="number" id="Volts" oninput="calculateWH()" placeholder="Enter Volts">
+
+        <label for="Ah">AH</label>
+        <input type="number" id="ah" oninput="calculateWH()" placeholder="Enter Ah value">
+
+        <label for="WH">WH</label>
+        <input type="number" id="wh" placeholder="Watt-Hours" readonly>
+
+        <label for="chem">CHEM</label>
+        <input type="text" id="chem" placeholder="Enter CHEM">
+
+        <label for="structure">Structure</label>
+        <input type="text" name="structure" id="structure">
+
+        <label for="STAFF">staff</label>
+        <input type="text" name="" id="staff">
+
+        <label for="WORKHR">workhr</label>
+        <input type="text" name="" id="workhr">
+
+        <label for="HR/PP">hr/pp</label>
+        <input type="text" name="" id="HRPP">
+
+        <label for="ENDDATE">enddate</label>
+        <input type="text" name="" id="endDate">
+
+        <label for="TESTTIME">TEST TIME</label>
+        <input type="text" name="" id="testTime">
+
+
+
+        <label for="AV">AV</label>
+        <input type="number" id="av" step="0.01" oninput="autoFillCav()">
+
+        <label for="s-price">S$</label>
+        <input type="number" id="s-price" oninput="autoFillCS$()" placeholder="Enter S$">
+
+        <label for="CDraw">CDraw</label>
+        <input type="text" id="CDraw" placeholder="Auto-filled from DrawingNo" readonly>
+
+        <label for="CCells">C-cells</label>
+        <input type="text" id="CCells" placeholder="Auto-filled from No/cells" readonly>
+
+        <label for="C-AV">C-AV</label>
+        <input type="number" id="Cav" placeholder="Auto-filled from AV" readonly>
+
+        <label for="C-B$">C-B$</label>
+        <input type="number" id="CB$" placeholder="Auto-filled from B$" readonly>
+
+        <label for="C-S$">C-S$</label>
+        <input type="number" id="CS$" placeholder="Auto-filled from S$" readonly>
+
+        <label for="C-STCode">C-STCode</label>
+        <input type="text" id="CSTcode" placeholder="Auto-filled from StockCode">
+
+        <label for="salesman">Salesman</label>
+        <input type="text" name="Salesman" id="salesman">
+
+        <label for="CustomerCode">Customer Code</label>
+        <input type="text" name="CustomerCode" id="customer-code">
+
+        <label for="orderDate">Order Date</label>
+        <input type="date" name="order-date" id="orderDate">
+
+        <button type="button">Submit</button>
+        </form>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 Master Instruments. All rights reserved.</p>
+    </div>
+</body>
+</html>

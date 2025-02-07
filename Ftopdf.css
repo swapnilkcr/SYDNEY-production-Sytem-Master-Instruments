@@ -1,0 +1,49 @@
+body {
+    top: 50px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image: url(bg3.jpg);
+    background-size: cover;
+    background-position: center;
+    /*background-repeat: no-repeat;*/
+    
+}
+
+
+#dataForm{
+    font-size: 30px;
+    border: 1px solid black;
+    padding: 37px;
+    border-radius: 10px;
+    background-color: white;
+}
+
+#Pno, #Dno , #imageUpload{
+    font-size: 30px;
+    padding:10px;
+    border-radius: 5px;
+}
+
+#Pno, #Dno{
+    box-shadow: 5px 5px;
+}
+
+button {
+    background-color: grey;
+    border: none;
+    padding: 30px;
+    border-radius: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+button:hover{
+    background-color: white;
+    border:1px solid black;
+    color:black;
+}
