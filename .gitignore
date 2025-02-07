@@ -1,4 +1,0 @@
-# .gitignore
-*.db
-*.bat
-__pycache__/

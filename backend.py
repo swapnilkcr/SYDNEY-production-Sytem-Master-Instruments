@@ -14,6 +14,13 @@ import websockets
 from urllib.parse import parse_qs,urlparse 
 import urllib.parse
 import time
+from config import ENV, PORT  # Import environment variables
+
+
+
+print(f"🚀 Environment: {ENV}")
+print(f"🌐 Running on port: {PORT}")
+
 
 
 
@@ -1233,10 +1240,13 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
 # Run the server
-def run(server_class=HTTPServer, handler_class=ClockInOutHandler, port=3002):
+def run(server_class=HTTPServer, handler_class=ClockInOutHandler, port=PORT):
     server_address = ('0.0.0.0', port)  # Listen on all interfaces
     httpd = server_class(server_address, handler_class)
-    print(f'Server running on port {port}...')
+    httpd = server_class(server_address, handler_class)
+    print(f"🚀 Environment: {ENV}")
+    print(f"🌐 Running on port: {port}")
+    print(f"✅ Server started on port {port}...")
     httpd.serve_forever()
 
 if __name__ == '__main__':
