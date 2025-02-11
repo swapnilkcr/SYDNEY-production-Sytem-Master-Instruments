@@ -79,40 +79,40 @@
         }
 
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('jobForm').addEventListener('click', function(e) {
+            document.getElementById('jobForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         const formData = {
-            inputDate: document.getElementById('inputDate').value,
             pn: document.getElementById('pn').value,
             noCell: document.getElementById('no-cell').value,
             drawNo: document.getElementById('draw-no').value,
-            requDate: document.getElementById('requ-date').value,
+            reqDate: document.getElementById('requ-date').value,
             cust: document.getElementById('cust').value,
             stockCode: document.getElementById('stock-code').value,
-            qty: document.getElementById('qty').value,
+            qty: parseFloat(document.getElementById('qty').value),
             cellCode: document.getElementById('cell-code').value,
-            bPrice: document.getElementById('b-price').value,
+            bPrice: parseFloat(document.getElementById('b-price').value),
             orderNo: document.getElementById('order-no').value,
             model: document.getElementById('model').value,
-            vol: document.getElementById('Volts').value,
-            ah: document.getElementById('ah').value,
-            wh: document.getElementById('wh').value,
+            vol: parseFloat(document.getElementById('Volts').value),
+            ah: parseFloat(document.getElementById('ah').value),
+            wh: parseFloat(document.getElementById('wh').value),
             chem: document.getElementById('chem').value,
             structure: document.getElementById('structure').value,
             staff: document.getElementById('staff').value,
-            workhr: document.getElementById('workhr').value,
-            HRPP: document.getElementById('HRPP').value,
-            ENDDate: document.getElementById('endDate').value,
-            testTime: document.getElementById('testTime').value,
-            av: document.getElementById('av').value,
-            sPrice: document.getElementById('s-price').value,
+            workhr: parseFloat(document.getElementById('workhr').value),
+            HRPP: parseFloat(document.getElementById('HRPP').value),
+            endDate: document.getElementById('endDate').value,
+            testTime: parseFloat(document.getElementById('testTime').value),
+            av: parseFloat(document.getElementById('av').value),
+            sPrice: parseFloat(document.getElementById('s-price').value),
+            discount: parseFloat(document.getElementById('discount').value),
             salesman: document.getElementById('salesman').value,
             customerCode: document.getElementById('customer-code').value,
             orderDate: document.getElementById('orderDate').value
         };
 
-        fetch('http://10.0.2.161:3002/add_job', {
+        fetch('http://10.0.2.161:3003/add_job', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -126,6 +126,10 @@
             } else if (data.error) {
                 alert(data.error);
             }
+        })
+        .catch(error => {
+            alert('An error occurred while submitting the form.');
+            console.error(error);
         });
     });
 });
@@ -239,6 +243,10 @@
         <label for="C-STCode">C-STCode</label>
         <input type="text" id="CSTcode" placeholder="Auto-filled from StockCode">
 
+        <label for="discount">Discount</label>
+        <input type="text" name="discount" id="discount">
+
+
         <label for="salesman">Salesman</label>
         <input type="text" name="Salesman" id="salesman">
 
@@ -248,7 +256,7 @@
         <label for="orderDate">Order Date</label>
         <input type="date" name="order-date" id="orderDate">
 
-        <button type="button">Submit</button>
+        <button type="submit">Submit</button>
         </form>
     </div>
     <div class="footer">
@@ -256,3 +264,8 @@
     </div>
 </body>
 </html>
+
+
+
+
+
