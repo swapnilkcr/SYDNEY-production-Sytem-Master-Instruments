@@ -105,7 +105,7 @@
           return;
         }
 
-        fetch("http://10.0.2.161:3002/move-job", {
+        fetch("http://10.0.2.161:3003/move-job", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jobId: selectedJobId })
@@ -231,8 +231,9 @@ function searchAV() {
         <a href="formtoPDF.html" target="_blank"> Form To Pdf</a>
         <a href="#" onclick="openModal('TotalLaborcost')">View Jobs</a>
         <a href="#" onclick="openViewAVModal()">View AV</a>
-        <!-- In the dropdown-content div -->
-        <a href="#" onclick="openModal('finished-jobs')">View Finished Jobs</a>
+        <!-- In the dropdown-content div 
+        <a href="#" onclick="openModal('finished-jobs')">View Finished Jobs</a> -->
+        <a href="finished-jobs.html">View Finished Jobs</a>
       </div>
     </div>
 
