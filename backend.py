@@ -258,12 +258,15 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('X-Content-Type-Options', 'nosniff')  
         self.end_headers()
     # Add the /view-running-jobs endpoint to the do_GET method
     def do_GET(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
+        self.send_header('Cache-Control', 'no-store')  # 🔥 Prevent caching
         self.send_header('Content-Type', 'application/json')
+        self.send_header('X-Content-Type-Options', 'nosniff')
 
         
         if self.path == '/get-staff':
@@ -271,10 +274,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             staff_list = load_staff_from_csv('staff.csv')
 
             # Respond with the staff list
-            self.send_response(200)
+            #self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Cache-Control', 'no-store') 
             self.end_headers()
-
             response = {'staff': staff_list}
             self.wfile.write(json.dumps(response).encode('utf-8'))
 
@@ -294,12 +297,16 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
+                self.send_header('Cache-Control', 'no-store') 
+                self.send_header('X-Content-Type-Options', 'nosniff') 
                 self.end_headers()
                 response = {'jobs': job_records}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 
             except Exception as e:
                 self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -320,6 +327,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
+            self.send_header('Cache-Control', 'no-store') 
             self.end_headers()
             self.wfile.write(json.dumps(response).encode('utf-8'))
 
@@ -354,6 +362,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
         elif self.path == '/view-times':
+            # Inside any GET endpoint (e.g., '/view-times')
             try:
                 conn = sqlite3.connect('clock_in_management.db')
                 cursor = conn.cursor()
@@ -426,6 +435,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Respond with records
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
+                self.send_header('Cache-Control', 'no-store')  #Prevent caching
                 self.end_headers()
                 response = {'records': records}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
@@ -468,6 +478,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Send response
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
+                self.send_header('Cache-Control', 'no-store')  #Prevents caching
                 self.end_headers()
 
                 response = {'runningJobs': running_jobs}
@@ -496,6 +507,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Send the Excel file as a response
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                self.send_header('Cache-Control', 'no-store')
                 self.send_header('Content-Disposition', 'attachment; filename="clock_in_data.xlsx"')
                 self.end_headers()
                 self.wfile.write(output_stream.read())  # Write the file content to the response
@@ -503,6 +515,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 # Handle errors
                 self.send_response(500)
+                self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -539,6 +552,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
+                self.send_header('Cache-Control', 'no-store')  #Prevents caching
                 self.end_headers()
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 
@@ -548,26 +562,22 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
+
+        elif self.path == "/get-config":
+            config_data = {"PORT": PORT}
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header('Cache-Control', 'no-store')  #Prevents caching
+            self.end_headers()
+            self.wfile.write(json.dumps(config_data).encode("utf-8"))
+
+
         else:
             self.send_response(404)
+            self.send_header('Cache-Control', 'no-store')  #Prevents caching
             self.end_headers()
 
-    def get_av_value(self, draw_no):
-        """Search for the DRAW NO and return the corresponding AV value from the Excel file."""
-        try:
-            # Load the Excel file and open the sheet
-            wb = openpyxl.load_workbook('SampleAV.xlsx')
-            sheet = wb['MergedData']  
-            
-            # Iterate through rows to find matching DRAW NO
-            for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=2):
-                if row[0].value == draw_no:
-                    return row[1].value  # Assuming AV value is in the second column
-            return None  # If DRAW NO not found
-        except Exception as e:
-            print(f"Error reading Excel file: {str(e)}")
-            return None
-
+    
 
         
     
@@ -575,6 +585,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
         self.send_header('Content-Type', 'application/json')
+        self.send_header('X-Content-Type-Options', 'nosniff')
         if self.path == '/clock-in':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
@@ -700,9 +711,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
-        
-
-        elif self.path == '/add-job':
+    
+        elif self.path == '/add_job':
             try:
                 # Read and parse the incoming JSON data
                 content_length = int(self.headers['Content-Length'])
@@ -739,10 +749,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 customer_code = data.get('customerCode', '')
                 order_date = data.get('orderDate', '')
 
+                # Insert into database
                 conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
 
-                # Insert new job data into PN_DATA
                 cursor.execute('''
                     INSERT INTO PN_DATA (PN, "INPUT DATE", "NO/CELL", "DRAW NO", "REQU-DATE", "CUST", 
                                         "STOCK CODE", "QTY", "CELL CODE", "B$", "ORDER NO", "MODEL", "VOL", 
@@ -763,12 +773,14 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'message': 'Job added successfully!'}).encode('utf-8'))
 
             except Exception as e:
+                # Log the error for debugging
+                print(f"Error: {e}")
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
-
+                
         elif self.path == '/submit-job':
             try:
                 content_length = int(self.headers['Content-Length'])
@@ -1231,6 +1243,23 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Server error'}).encode('utf-8'))
     
+
+    def get_av_value(self, draw_no):
+        """Search for the DRAW NO and return the corresponding AV value from the Excel file."""
+        try:
+            # Load the Excel file and open the sheet
+            wb = openpyxl.load_workbook('SampleAV.xlsx')
+            sheet = wb['MergedData']  
+            
+            # Iterate through rows to find matching DRAW NO
+            for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=1, max_col=2):
+                if row[0].value == draw_no:
+                    return row[1].value  # Assuming AV value is in the second column
+            return None  # If DRAW NO not found
+        except Exception as e:
+            print(f"Error reading Excel file: {str(e)}")
+            return None
+
 
 
 

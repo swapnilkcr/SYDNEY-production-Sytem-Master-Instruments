@@ -75,7 +75,7 @@ button{
   color: white;
   border: none;
   padding: 10px 20px;
-  font-size: 20px;
+  font-size: 15px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1) !important;
@@ -97,7 +97,7 @@ button#stop-btn:hover {
   color: white;               /* White text */
   border: none;               /* No border */
   padding: 10px 20px;         /* Padding for the button */
-  font-size: 20px;            /* Text size */
+  font-size: 15px;            /* Text size */
   cursor: pointer;           /* Pointer cursor when hovering */
   transition: all 0.3s ease;
   box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1) !important;
@@ -111,7 +111,7 @@ button#stop-btn:hover {
   color: white;               /* White text */
   border: none;               /* No border */
   padding: 10px 20px;         /* Padding for the button */
-  font-size: 20px;            /* Text size */
+  font-size: 15px;            /* Text size */
   cursor: pointer;           /* Pointer cursor when hovering */
   transition: all 0.3s ease;
   box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1) !important;
@@ -146,11 +146,12 @@ a:hover {
   /* background-color: white  !important; */
   color: black;
   /* padding: 10px 15px; */
-  font-size: 20px; 
+  font-size: 15px; 
   border: none;
   cursor: pointer;
   border-radius: 5px;
   background: none;
+  font-weight: bold;
 
 }
 
@@ -212,7 +213,7 @@ a:hover {
   justify-content: center;
 }
 .s1, #staff-select, #job-select {
-  font-size: 20px;
+  font-size: 15px;
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 10px;
@@ -330,7 +331,7 @@ html, body {
 .filter-container, #records-table{
   display: none; /* Hidden by default */
   margin-top: 25px;
-  font-size:20px;
+  font-size:15px;
 }
 
 #filter-input {
@@ -346,7 +347,7 @@ html, body {
   background-color: white;
   box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1);
   align-items: center;
-  height:55px;
+  height:40px;
 }
 
 .nav1{
@@ -372,6 +373,7 @@ html, body {
       top: 36px;
       border-bottom-left-radius: 25px;
       border-bottom-right-radius: 25px;
+      font-size:15px;
   }
 
     .dropdown-content a {
@@ -391,19 +393,21 @@ html, body {
       display: block;
     }
 
-    .dropdown .dropdown-content{
-      padding: 5px;
+    .dropdown .dropdown-content {
+      padding: 2px;
       z-index: 1;
       right: 60px;
-      top: 25px;
-    }
+      top: 19px;
+      left: 48px;
+  }
 
     /*Export navbar */
     a#export-btn {
       margin-right: 50px;
-      font-size: 20px;
+      font-size: 15px;
       background:none;
       color:black;
+      font-weight: bold;
   }
   a#export-btn:hover {
     color: lightskyblue;
@@ -439,10 +443,11 @@ span.select2.select2-container.select2-container--default {
     .dropbtn {
       /*background-color: white;*/
       color: black;
-      font-size: 20px;
+      font-size: 15px;
       border: none;
       cursor: pointer;
       margin: 0px 50px;
+      font-weight: bold;
   }
 
 /* Modal styling */
@@ -624,7 +629,7 @@ button.searchAv {
 .head1 h1{
   position: relative;
   left: 400px;
-  font-size: 25px;
+  font-size: 20px;
 }
 
 button#moveJobButton {
@@ -770,11 +775,15 @@ li.select2-results__option.select2-results__message {
 }
 
 div#user-info {
-  font-size: 20px !important;
+  font-size: 15px !important;
   margin-right: 20px;
   font-family: sans-serif;
   font-style: normal;
   font-weight: 100;
+}
+
+img.imglogo {
+  height: 43px;
 }
 
 

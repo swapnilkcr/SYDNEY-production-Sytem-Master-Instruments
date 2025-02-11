@@ -1,3 +1,53 @@
+
+
+
+
+let BASE_URL = "";  // Placeholder for dynamic port
+
+// Fetch the correct backend port from the server
+fetch('http://10.0.2.161:3003/get-config')
+  .then(response => response.json())
+  .then(config => {
+    BASE_URL = `http://10.0.2.161:${config.PORT}`;
+    console.log("✅ Backend Port:", config.PORT);
+    
+    // Now fetch staff and jobs AFTER getting the correct PORT
+    fetchStaff();
+    fetchJobs();
+  })
+  .catch(error => {
+    console.error('❌ Error fetching config:', error);
+  });
+
+
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('username') || 'Unknown User';
+    const userRole = localStorage.getItem('userRole') || 'Unknown Role';
+  
+    // Display the logged-in user info
+    const userInfoDiv = document.getElementById('user-info');
+    userInfoDiv.textContent = `${username} (${userRole})`;
+  
+    // Hide admin-only buttons for non-admin users
+    const adminOnlyElements = document.querySelectorAll('[data-role="admin-only"]');
+    if (userRole !== 'admin') {
+      adminOnlyElements.forEach(element => {
+        element.style.display = 'none'; // Hide elements
+      });
+    }
+  
+    console.log(`Logged in as: ${username} (Role: ${userRole})`);
+  });
+  
+  window.addEventListener('popstate', (event) => {
+    // Redirect back to the layout page if the user presses the back button
+    if (window.location.pathname === '/layout.html') {
+      history.replaceState(null, null, window.location.href);
+    }
+  })
+  
+
 document.addEventListener('DOMContentLoaded', () => {
   const staffSelect = document.getElementById('staff-select');
   const jobSelect = document.getElementById('job-select');
@@ -11,10 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableBody = recordsTable.querySelector('tbody');  // Table body for records
   const messageDiv = document.getElementById('message');
   
-  document.addEventListener("submit", (event) => {
-    event.preventDefault();
-    console.log("🛑 Form submission prevented.");
-});
 
   
 
@@ -25,11 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearTable() {
     tableBody.innerHTML = '';
   }
-
-
-
-  
-  
 
   // Function to format date to human-readable format
   function formatDate(date) {
@@ -70,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activeSessions[sessionKey] = { startTime, formattedStartTime };
 
     // Send start session to the backend
-    fetch('http://10.0.2.161:3002/start-job', {
+    fetch(`${BASE_URL}/start-job`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ staffName, jobId, startTime: formattedStartTime }),
@@ -113,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     console.log('Stop button clicked. Sending stop-job request:', data); // Debugging log
   
-    fetch('http://10.0.2.161:3002/stop-job', {
+    fetch(`${BASE_URL}/stop-job`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -152,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     console.log('Sending stop-job request:', data); // Debugging log
   
-    fetch('http://10.0.2.161:3002/stop-job', {
+    fetch(`${BASE_URL}/stop-job`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -175,14 +216,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // View Running Jobs Logic (view running jobs button)
-  viewRunningJobsBtn.addEventListener('click', () => {
+  viewRunningJobsBtn.addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent default behavior
     console.log('View Running Jobs button clicked');
     messageDiv.textContent = 'Loading running jobs...';  // Show loading message
     tableBody.innerHTML = '';  // Clear any existing rows
     recordsTable.style.display = 'none';  // Hide the table initially
     viewRunningJobsBtn.disabled = true;  // Disable the button during the request
 
-    fetch('http://10.0.2.161:3002/view-running-jobs', {
+    fetch(`${BASE_URL}/view-running-jobs`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -232,88 +274,92 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 });
 
-viewBtn.addEventListener('click', () => {
-  const tableBody = document.querySelector('#records-table tbody');
-  const messageDiv = document.getElementById('message');
-  tableBody.innerHTML = '';  // Clear any existing rows
-  recordsTable.style.display = 'none';  // Hide the table initially
-  messageDiv.textContent = 'Loading clock-in/clock-out data...';  // Show loading message
+  viewBtn.addEventListener('click', (event) => {
+    console.log('View button clicked'); // Debugging log
+    event.preventDefault(); // Prevent default behavior
+    event.stopPropagation();
+    const tableBody = document.querySelector('#records-table tbody');
+    const messageDiv = document.getElementById('message');
+    tableBody.innerHTML = '';  // Clear any existing rows
+    recordsTable.style.display = 'none';  // Hide the table initially
+    messageDiv.textContent = 'Loading clock-in/clock-out data...';  // Show loading message
 
-  fetch('http://10.0.2.161:3002/view-times', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to fetch records.');
-      return response.json();
+    fetch(`${BASE_URL}/view-times`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
     })
-    .then(data => {
-      if (data.records && data.records.length > 0) {
-        recordsTable.style.display = 'block';  // Show the table
-        data.records.forEach(record => {
-          const totalHoursWorked = parseFloat(record.totalHoursWorked) || 0;
-          const estimatedTime = parseFloat(record.estimatedTime) || 0;
-          const remainingTime = parseFloat(record.remainingTime) !== undefined ? parseFloat(record.remainingTime).toFixed(2) : '0.00';
+      .then(response => {
+        console.log("Fetch response status:", response.status);
+        if (!response.ok) throw new Error('Failed to fetch records.');
+        return response.json();
+      })
+      .then(data => {
+        if (data.records && data.records.length > 0) {
+          recordsTable.style.display = 'block';  // Show the table
+          data.records.forEach(record => {
+            const totalHoursWorked = parseFloat(record.totalHoursWorked) || 0;
+            const estimatedTime = parseFloat(record.estimatedTime) || 0;
+            const remainingTime = parseFloat(record.remainingTime) !== undefined ? parseFloat(record.remainingTime).toFixed(2) : '0.00';
 
-          // Format the start time and stop time
-          const formattedStartTime = new Date(record.startTime).toLocaleString('en-GB', {
-            year: 'numeric',
-            month: 'long',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false, // Use 24-hour time format
+            // Format the start time and stop time
+            const formattedStartTime = new Date(record.startTime).toLocaleString('en-GB', {
+              year: 'numeric',
+              month: 'long',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false, // Use 24-hour time format
+            });
+
+            const formattedStopTime = new Date(record.stopTime).toLocaleString('en-GB', {
+              year: 'numeric',
+              month: 'long',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false, // Use 24-hour time format
+            });
+
+            // Create table row
+            const row = document.createElement('tr');
+            const laborCost = (typeof record.laborCost === 'number' && !isNaN(record.laborCost))
+              ? `$${record.laborCost.toFixed(2)}`
+              : 'N/A';
+
+            row.innerHTML = `
+              <td>${record.staffName}</td>
+              <td>${record.jobId}</td>
+              <td>${record.drawingNumber}</td>
+              <td>${record.cellNo}</td>
+              <td>${record.quantity}</td>
+              <td>${record.customerName}</td>
+              <td>${formattedStartTime}</td>
+              <td>${formattedStopTime}</td>
+              <td>${totalHoursWorked} hrs</td>
+              <td>${estimatedTime} hrs</td>
+              <td>${remainingTime} hrs</td>
+              <td>${laborCost}</td>
+            `;
+            tableBody.appendChild(row);  // Append row to the table body
           });
-
-          const formattedStopTime = new Date(record.stopTime).toLocaleString('en-GB', {
-            year: 'numeric',
-            month: 'long',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false, // Use 24-hour time format
-          });
-
-          // Create table row
-          const row = document.createElement('tr');
-          const laborCost = (typeof record.laborCost === 'number' && !isNaN(record.laborCost))
-            ? `$${record.laborCost.toFixed(2)}`
-            : 'N/A';
-
-          row.innerHTML = `
-            <td>${record.staffName}</td>
-            <td>${record.jobId}</td>
-            <td>${record.drawingNumber}</td>
-            <td>${record.cellNo}</td>
-            <td>${record.quantity}</td>
-            <td>${record.customerName}</td>
-            <td>${formattedStartTime}</td>
-            <td>${formattedStopTime}</td>
-            <td>${totalHoursWorked} hrs</td>
-            <td>${estimatedTime} hrs</td>
-            <td>${remainingTime} hrs</td>
-            <td>${laborCost}</td>
-          `;
-          tableBody.appendChild(row);  // Append row to the table body
-        });
-        messageDiv.textContent = '';  // Clear the loading message
-      } else {
-        messageDiv.textContent = 'No records found.';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching records:', error);
-      messageDiv.textContent = `Error fetching records: ${error.message}`;
-    });
-});
+          messageDiv.textContent = '';  // Clear the loading message
+        } else {
+          messageDiv.textContent = 'No records found.';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching records:', error);
+        messageDiv.textContent = `Error fetching records: ${error.message}`;
+      });
+  });
 
   document.getElementById('export-btn').addEventListener('click', () => {
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = 'Exporting data to Excel...';
   
-    fetch('http://10.0.2.161:3002/export-to-excel', {
+    fetch(`${BASE_URL}/export-to-excel`, {
       method: 'GET',
     })
       .then(response => {
@@ -338,9 +384,10 @@ viewBtn.addEventListener('click', () => {
 
   function fetchRunningJobs() {
     console.log("Fetching running jobs..."); // Debugging Log
-    fetch('http://10.0.2.161:3002/view-running-jobs', {
+    fetch(`${BASE_URL}/view-running-jobs`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
+      cache: 'no-cache'
     })
       .then(response => {
         console.log("Received response:", response.status); // Debugging Log
@@ -375,156 +422,144 @@ viewBtn.addEventListener('click', () => {
   
 });
 
-//document.addEventListener('DOMContentLoaded', () => {
-//fetchJobs(); // Call fetchJobs after the DOM is ready
-//fetchStaff();
-//fetchRunningJobs();
-//});
 
 
 
-let fetchJobsCalled = false;
+  let fetchJobsCalled = false;
 
-function fetchJobs() {
-  if (fetchJobsCalled) {
-        console.warn("⚠️ fetchJobs() already called! Skipping.");
-        return;
-  }
-    fetchJobsCalled = true; // Mark function as called
-
-    console.log("🔍 fetchJobs() called");
-
-    const jobSelect = document.getElementById('job-select');
-    if (!jobSelect) {
-        console.error('❌ Error: jobSelect element not found.');
-        return;
+  function fetchJobs() {
+    if (fetchJobsCalled) {
+          console.warn("⚠️ fetchJobs() already called! Skipping.");
+          return;
     }
+      fetchJobsCalled = true; // Mark function as called
 
-    console.log("✅ Found jobSelect element.");
-    console.log("🚀 Fetching jobs from backend...");
+      console.log("🔍 fetchJobs() called");
+
+      const jobSelect = document.getElementById('job-select');
+      if (!jobSelect) {
+          console.error('❌ Error: jobSelect element not found.');
+          return;
+      }
+
+      console.log("✅ Found jobSelect element.");
+      console.log("🚀 Fetching jobs from backend...");
 
 
-    fetch('http://10.0.2.161:3002/get-jobs', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+      fetch(`${BASE_URL}/get-jobs`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
+      .then(response => {
+          console.log("🔄 Fetch response status:", response.status);
+
+          if (response.redirected) {
+              console.warn("⚠️ Redirect detected! This may be causing a loop.");
+              return;
+          }
+
+          return response.json();
       })
-    .then(response => {
-        console.log("🔄 Fetch response status:", response.status);
+      .then(data => {
+          console.log("✅ Fetch response received:", data);
 
-        if (response.redirected) {
-            console.warn("⚠️ Redirect detected! This may be causing a loop.");
-            return;
-        }
+          if (!data || !data.jobs || data.jobs.length === 0) {
+              console.warn('⚠️ No job data available.');
+              return;
+          }
 
-        return response.json();
-    })
-    .then(data => {
-        console.log("✅ Fetch response received:", data);
+          jobSelect.innerHTML = '<option value="">-- Select Job --</option>'; // Clear existing options
 
-        if (!data || !data.jobs || data.jobs.length === 0) {
-            console.warn('⚠️ No job data available.');
-            return;
-        }
+          data.jobs.forEach(job => {
+              console.log(`📌 Adding job: ${job.jobId}`);
+              const option = document.createElement('option');
+              option.value = job.jobId;
+              option.textContent = `${job.jobId} - ${job.customer}`;
+              jobSelect.appendChild(option);
+          });
 
-        jobSelect.innerHTML = '<option value="">-- Select Job --</option>'; // Clear existing options
-
-        data.jobs.forEach(job => {
-            console.log(`📌 Adding job: ${job.jobId}`);
-            const option = document.createElement('option');
-            option.value = job.jobId;
-            option.textContent = `${job.jobId} - ${job.customer}`;
-            jobSelect.appendChild(option);
-        });
-
-        console.log("✅ Job dropdown updated.");
-    })
-    .catch(error => {
-        console.error('❌ Error fetching jobs:', error);
-    });
-}
-
-// Ensure fetchJobs() runs only once per page load
-try {
-  fetchJobs();
-} catch (error) {
-  console.error("❌ fetchJobs() crashed:", error);
-}
-
-
-
-
-// Fixed addJob function to handle adding jobs properly
-function addJob() {
-  const jobIdInput = document.getElementById('new-job-id');
-  const customerInput = document.getElementById('customer');
-  const stockCodeInput = document.getElementById('stock-code');
-  const qtyInput = document.getElementById('quantity');
-  const drawNoInput = document.getElementById('draw-no');
-
-  if (!jobIdInput || !customerInput || !stockCodeInput || !qtyInput || !drawNoInput) {
-    console.error('Error: One or more input elements not found.');
-    return;
+          console.log("✅ Job dropdown updated.");
+      })
+      .catch(error => {
+          console.error('❌ Error fetching jobs:', error);
+      });
   }
 
-  const jobData = {
-    jobId: jobIdInput.value.trim(),
-    cust: customerInput.value.trim(),
-    stockCode: stockCodeInput.value.trim(),
-    qty: parseInt(qtyInput.value.trim()) || 0,
-    drawNo: drawNoInput.value.trim(),
-    reqDate: document.getElementById('req-date').value || '',
-    cellCode: document.getElementById('cell-code').value || '',
-    bPrice: parseFloat(document.getElementById('b-price').value) || 0,
-    orderNo: document.getElementById('order-no').value || '',
-    model: document.getElementById('model').value || '',
-    av: parseFloat(document.getElementById('av').value) || 0,
-    salesman: document.getElementById('salesman').value || '',
-  };
 
-  fetch('http://10.0.2.161:3002/add_job', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(jobData),
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          console.error('Error response:', errorData);
-          throw new Error(errorData.error || 'Failed to add job.');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert(data.message);
-      jobIdInput.value = '';
-      customerInput.value = '';
-      stockCodeInput.value = '';
-      qtyInput.value = '';
-      drawNoInput.value = '';
-      document.getElementById('modal-job').style.display = 'none';
 
-      setTimeout(() => {
-        fetchJobs(); // Refresh job list
-      }, 300);
+
+  /*
+  // Fixed addJob function to handle adding jobs properly
+  function addJob() {
+    const jobIdInput = document.getElementById('new-job-id');
+    const customerInput = document.getElementById('customer');
+    const stockCodeInput = document.getElementById('stock-code');
+    const qtyInput = document.getElementById('quantity');
+    const drawNoInput = document.getElementById('draw-no');
+
+    if (!jobIdInput || !customerInput || !stockCodeInput || !qtyInput || !drawNoInput) {
+      console.error('Error: One or more input elements not found.');
+      return;
+    }
+    
+
+    const jobData = {
+      jobId: jobIdInput.value.trim(),
+      cust: customerInput.value.trim(),
+      stockCode: stockCodeInput.value.trim(),
+      qty: parseInt(qtyInput.value.trim()) || 0,
+      drawNo: drawNoInput.value.trim(),
+      reqDate: document.getElementById('req-date').value || '',
+      cellCode: document.getElementById('cell-code').value || '',
+      bPrice: parseFloat(document.getElementById('b-price').value) || 0,
+      orderNo: document.getElementById('order-no').value || '',
+      model: document.getElementById('model').value || '',
+      av: parseFloat(document.getElementById('av').value) || 0,
+      salesman: document.getElementById('salesman').value || '',
+    };
+
+    fetch(`${BASE_URL}/add_job`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jobData),
     })
-    .catch(error => {
-      console.error('Error adding job:', error);
-      alert(`Error adding job: ${error.message}`);
-    });
-}
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            console.error('Error response:', errorData);
+            throw new Error(errorData.error || 'Failed to add job.');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert(data.message);
+        jobIdInput.value = '';
+        customerInput.value = '';
+        stockCodeInput.value = '';
+        qtyInput.value = '';
+        drawNoInput.value = '';
+        document.getElementById('modal-job').style.display = 'none';
+
+        setTimeout(() => {
+          fetchJobs(); // Refresh job list
+        },1000);
+      })
+      .catch(error => {
+        console.error('Error adding job:', error);
+        alert(`Error adding job: ${error.message}`);
+      });
+  } */
 
 
 
 //Function to fetch staff and add staff
 // Fetch staff and populate the dropdown
-document.addEventListener('DOMContentLoaded', () => {
-  fetchStaff(); // Call fetchStaff after the DOM is ready
-});
 
 
 let isFetching = false;
 function fetchStaff() {
+  console.log('fetching')
   const staffSelect = document.getElementById('staff-select');
   if (!staffSelect) {
     console.error('Error: staffSelect element not found.');
@@ -533,7 +568,7 @@ function fetchStaff() {
 
   if (isFetching) return;
   isFetching = true;
-  fetch('http://10.0.2.161:3002/get-staff', {
+  fetch(`${BASE_URL}/get-staff`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   })
@@ -553,7 +588,11 @@ function fetchStaff() {
     })
     .catch(error => {
       console.error('Error fetching staff:', error);
+    })
+    .finally(() => {
+      isFetching = false;  // Reset flag even if there's an error
     });
+    
 }
 
 
@@ -571,7 +610,7 @@ function addStaff() {
 
   const staffName = document.getElementById('new-staff-name').value.trim();
   if (staffName) {
-    fetch('http://10.0.2.161:3002/add-staff', {
+    fetch(`${BASE_URL}/add-staff`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ staffName }),
@@ -620,7 +659,7 @@ document.getElementById('finish-btn').addEventListener('click', () => {
       return;
   }
 
-  fetch('http://10.0.2.161:3002/finish-job', {
+  fetch(`${BASE_URL}/finish-job`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ staffName, jobId }),
@@ -652,21 +691,27 @@ document.getElementById('finish-btn').addEventListener('click', () => {
 
 
 function openModal(modalId) {
-  var modal = document.getElementById(modalId + "Modal");  // Target specific modal by ID
-  modal.style.display = "block";  // Show the modal
+  const modal = document.getElementById(modalId + "Modal"); // Append "Modal" to ID
 
-  // Fetch job data from the backend (only for the total labor cost modal)
+  if (!modal) {
+    console.error(`Modal with ID ${modalId}Modal not found.`);
+    return;
+  }
+
+  modal.style.display = "block"; // Show the modal
+
+  // Fetch data for Total Labor Cost modal
   if (modalId === 'TotalLaborcost') {
-    fetch('http://10.0.2.161:3002/get-totallaborcost')
+    fetch('http://10.0.2.161:3000/get-totallaborcost')
       .then(response => response.json())
       .then(data => {
-        var jobListContainer = document.getElementById('job-list-container');
-        jobListContainer.innerHTML = "";  // Clear loading text
+        const jobListContainer = document.getElementById('job-list-container');
+        jobListContainer.innerHTML = "";
 
-        if (data.jobs && data.jobs.length > 0) {
+        if (data.jobs?.length > 0) {
           data.jobs.forEach(job => {
-            var jobItem = document.createElement("p");
-            jobItem.textContent = "Job ID: " + job.jobId + " | Total Labor Cost: $" + job.totalLaborCost;
+            const jobItem = document.createElement("p");
+            jobItem.textContent = `Job ID: ${job.jobId} | Total Labor Cost: $${job.totalLaborCost}`;
             jobListContainer.appendChild(jobItem);
           });
         } else {
@@ -675,17 +720,13 @@ function openModal(modalId) {
       })
       .catch(error => {
         console.error("Error fetching job data:", error);
-        var jobListContainer = document.getElementById('job-list-container');
-        jobListContainer.innerHTML = "<p>Failed to load job data.</p>";
+        document.getElementById('job-list-container').innerHTML = "<p>Failed to load job data.</p>";
       });
   }
-}
 
-// Add to the existing openModal function
-function openModal(modalId) {
+  // Handle Finished Jobs modal
   if (modalId === 'finished-jobs') {
     openFinishedJobsModal();
-    return;
   }
 }
 
@@ -754,36 +795,11 @@ function searchJobs() {
 }
 
 //LAYERING FOR DIFFERENT USERS.
-document.addEventListener('DOMContentLoaded', () => {
-  const username = localStorage.getItem('username') || 'Unknown User';
-  const userRole = localStorage.getItem('userRole') || 'Unknown Role';
 
-  // Display the logged-in user info
-  const userInfoDiv = document.getElementById('user-info');
-  userInfoDiv.textContent = `Logged in as: ${username} (${userRole})`;
-
-  // Hide admin-only buttons for non-admin users
-  const adminOnlyElements = document.querySelectorAll('[data-role="admin-only"]');
-  if (userRole !== 'admin') {
-    adminOnlyElements.forEach(element => {
-      element.style.display = 'none'; // Hide elements
-    });
-  }
-
-  console.log(`Logged in as: ${username} (Role: ${userRole})`);
-});
-
-window.addEventListener('popstate', (event) => {
-  // Redirect back to the layout page if the user presses the back button
-  if (window.location.pathname === 'http://10.0.2.161:3003/layout.html') {
-    history.pushState(null, null, window.location.href);
-  }
-})
-
-function logout() {
+/*function logout() {
   localStorage.clear(); // Clear stored user data
-  window.location.href = "http://10.0.2.161:3003/Login.html"; // Redirect to login page
-}
+  window.location.href = "http://10.0.2.161:3004/Login.html"; // Redirect to login page
+}*/
 
 
 function addRunningJob(staffName, jobId) {
@@ -813,7 +829,7 @@ function openFinishedJobsModal() {
 
 // Fetch and display finished jobs
 function fetchFinishedJobs() {
-  fetch('http://10.0.2.161:3002/view-finished-jobs')
+  fetch(`${BASE_URL}/view-finished-jobs`)
     .then(response => response.json())
     .then(data => {
       const container = document.getElementById('finished-jobs-container');

@@ -12,7 +12,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script> 
 
 
 
@@ -69,24 +69,23 @@
 
     //Add new job
     function logout() {
-      window.location.href = 'http://10.0.2.161:3003/Login.html';
+      window.location.href = 'http://10.0.2.161:3004/Login.html';
     }
 
     function openModal(type) {
       document.getElementById(`modal-${type}`).style.display = 'flex';
     }
 
-    function openModal(modalId) {
+    //function openModal(modalId) {
       // Update logic to handle 'modal-' prefix
-      const modal = document.getElementById(`modal-${modalId}`);
-      if (modal) {
-        modal.style.display = "block";
-      } else {
-        console.error(`Modal with ID modal-${modalId} not found.`);
-      }
-    }
-
-    
+      //const modal = document.getElementById(`modal-${modalId}`);
+      //if (modal) {
+       // modal.style.display = "block";
+      //} else {
+        //console.error(`Modal with ID modal-${modalId} not found.`);
+     // }
+    //}
+ 
 
     function closeModal(type) {
       document.getElementById(`modal-${type}`).style.display = 'none';
@@ -166,7 +165,7 @@ function searchAV() {
     document.querySelector('#viewAVModal .modal-content').appendChild(loadingMessage);
 
     // Fetch AV based on STOCK CODE
-    fetch(`http://10.0.2.161:3002/get-av?stockCode=${encodeURIComponent(stockCode)}`)
+    fetch(`http://10.0.2.161:3003/get-av?stockCode=${encodeURIComponent(stockCode)}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('loadingMessage').remove();  // Remove loading message
@@ -311,7 +310,7 @@ function searchAV() {
     <div class="container">
       <div class="head1">
         <h1>Jobs Clock-In Clock-Out</h1>
-        <button id="moveJobButton" data-role="admin-only" type=>Move to Finished Jobs</button>
+        <button id="moveJobButton" data-role="admin-only" type="button">Move to Finished Jobs</button>
       </div>
       
 
@@ -395,6 +394,6 @@ function searchAV() {
     </footer>
   </div>
 
-  <script src="clock.js"></script>
+ <script src="clock.js"></script>
 </body>
 </html>
