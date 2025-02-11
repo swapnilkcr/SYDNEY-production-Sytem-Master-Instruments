@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
   
-
+  
   const activeSessions = {};  // Track active sessions
 
   
@@ -132,6 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Active sessions after start:', activeSessions);
   });
 
+
+  fetchFinishedJobs();  // Ensure jobs are loaded first
+
+  const searchInput = document.getElementById('pn-search');
+  if (searchInput) {
+      searchInput.addEventListener('keyup', searchByPN);
+  } else {
+      console.error("Error: Search input element not found.");
+  }
   // Stop button logic
   /*stopBtn.addEventListener('click', () => {
     const runningJobSelect = document.getElementById('running-job-select');
@@ -827,9 +836,22 @@ function openFinishedJobsModal() {
   fetchFinishedJobs();
 }
 
+<<<<<<< HEAD
 // Fetch and display finished jobs
 function fetchFinishedJobs() {
   fetch(`${BASE_URL}/view-finished-jobs`)
+=======
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.includes('finished-jobs.html')) {
+    fetchFinishedJobs();
+  }
+});
+
+
+
+/*function fetchFinishedJobs() {
+  fetch('http://10.0.2.161:3003/view-finished-jobs')
+>>>>>>> develop
     .then(response => response.json())
     .then(data => {
       const container = document.getElementById('finished-jobs-container');
@@ -875,7 +897,83 @@ function filterFinishedJobs() {
     const text = row.textContent.toLowerCase();
     row.style.display = text.includes(input) ? '' : 'none';
   }
+}*/
+
+
+let currentPage = 1;
+const rowsPerPage = 10; // Number of rows per page
+let allJobs = []; // Store all fetched jobs
+
+
+
+function fetchFinishedJobs() {
+  fetch('http://10.0.2.161:3003/view-finished-jobs')
+    .then(response => response.json())
+    .then(data => {
+      if (data.jobs && data.jobs.length > 0) {
+        allJobs = data.jobs; // Store all jobs
+        displayTable(currentPage); // Display the first page
+        setupPagination(allJobs.length); // Set up pagination controls
+      } else {
+        document.getElementById('finished-jobs-container').innerHTML = '<p>No finished jobs found.</p>';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching finished jobs:', error);
+      document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
+    });
 }
+
+function displayTable(page) {
+  const container = document.getElementById('finished-jobs-container');
+  container.innerHTML = '';
+
+  const start = (page - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const paginatedJobs = allJobs.slice(start, end);
+
+  if (paginatedJobs.length > 0) {
+    const table = document.createElement('table');
+    table.className = 'finished-jobs-table';
+    table.innerHTML = `
+      <thead>
+        <tr>
+          ${Object.keys(paginatedJobs[0]).map(col => `<th>${col}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${paginatedJobs.map(job => `
+          <tr>
+            ${Object.values(job).map(value => `<td>${value}</td>`).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    `;
+    container.appendChild(table);
+  } else {
+    container.innerHTML = '<p>No data to display.</p>';
+  }
+}
+
+function setupPagination(totalRows) {
+  const paginationContainer = document.getElementById('pagination');
+  paginationContainer.innerHTML = '';
+
+  const pageCount = Math.ceil(totalRows / rowsPerPage);
+
+  for (let i = 1; i <= pageCount; i++) {
+    const button = document.createElement('button');
+    button.innerText = i;
+    button.addEventListener('click', () => {
+      currentPage = i;
+      displayTable(currentPage);
+    });
+    paginationContainer.appendChild(button);
+  }
+}
+
+
+
 
 
 
