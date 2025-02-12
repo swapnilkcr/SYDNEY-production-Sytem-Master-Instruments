@@ -15,6 +15,9 @@ from urllib.parse import parse_qs,urlparse
 import urllib.parse
 import time
 from config import ENV, PORT  # Import environment variables
+import gzip
+import json
+from io import BytesIO
 
 
 
@@ -264,6 +267,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Cache-Control', 'no-store')  # 🔥 Prevent caching
         self.send_header('Content-Type', 'application/json')
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -362,90 +366,86 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
         elif self.path == '/view-times':
-            # Inside any GET endpoint (e.g., '/view-times')
             try:
                 conn = sqlite3.connect('clock_in_management.db')
                 cursor = conn.cursor()
 
-                # Fetch all ClockIn/ClockOut records
+                # Optimized SQL query (from previous steps)
                 cursor.execute('''
-                    SELECT StaffName, JobID, StartTime, StopTime, LaborCost
-                    FROM ClockInOut
+                    SELECT 
+                        c.StaffName, 
+                        c.JobID, 
+                        c.StartTime, 
+                        c.StopTime, 
+                        c.LaborCost, 
+                        j.CUST, j."DRAW NO", j."NO/CELL", j.QTY, j."REQU-DATE",
+                        
+                        -- Compute Estimated Time from AV * QTY
+                        COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
+
+                        -- Compute Total Hours Worked using SUM in SQL
+                        ROUND(COALESCE(SUM(
+                            CASE 
+                                WHEN c.StopTime IS NOT NULL THEN 
+                                    (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0 
+                                ELSE 
+                                    (strftime('%s', 'now') - strftime('%s', c.StartTime)) / 3600.0 
+                            END
+                        ), 0.0),2) AS TotalHoursWorked 
+
+                    FROM ClockInOut c
+                    LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                    LEFT JOIN MergedData p ON j.PN = p.StockCode
+                    GROUP BY c.JobID, c.StaffName
                 ''')
+
                 rows = cursor.fetchall()
-                #print(f"Fetched rows: {rows}")  # Debugging log
+                print(f"🔍 DEBUG: Retrieved rows from database: {rows}")  # Add this line
+
                 conn.close()
 
-                records = []
-                for row in rows:
-                    staff_name, job_id, start_time, stop_time,labor_cost = row
-                    
-                    # Handle NULL StopTime
-                    if start_time and stop_time:
-                        start_dt= datetime.strptime(start_time,'%Y-%m-%d %H:%M:%S')
-                        stop_dt = datetime.strptime(stop_time, '%Y-%m-%d %H:%M:%S')
-                        total_hours = round((stop_dt - start_dt).total_seconds() / 3600, 2)  # Round to 2 decimal places
-                    else:
-                        total_hours = 0.0
-                    estimated_time = calculate_estimated_time(job_id)
-                    total_hours_worked = get_total_hours_worked(job_id)
-                    remaining_time =  round(estimated_time - total_hours_worked, 2)
+                # Process data
+                records = [
+                    {
+                        'staffName': row[0],
+                        'jobId': row[1],
+                        'startTime': row[2] or 'NA',
+                        'stopTime': row[3] if row[3] else "In Progress",
+                        'totalHoursWorked': row[11] if row[11] != 0 else "In Progress",
+                        'estimatedTime': row[10],
+                        'remainingTime': round(row[10] - row[11], 2),
+                        'customerName': row[5] or "Unknown",
+                        'drawingNumber': row[6] or "Unknown",
+                        'cellNo': row[7] or "Unknown",
+                        'quantity': row[8] or "Unknown",
+                        'laborCost': row[4] if row[4] is not None else "N/A"
+                    } for row in rows
+                ]
 
-                    # Handle missing or invalid labor cost
-                    labor_cost = labor_cost if labor_cost is not None else "N/A"
+                # Convert JSON to compressed Gzip format
+                json_data = json.dumps({'records': records}).encode('utf-8')
+                buffer = BytesIO()
+                with gzip.GzipFile(fileobj=buffer, mode='wb') as gzip_file:
+                    gzip_file.write(json_data)
 
-                    #print(f"JobID: {job_id}, Estimated: {estimated_time}, Worked: {total_hours_worked}, Remaining: {remaining_time}, LaborCost: {labor_cost}")  # Debugging log
+                compressed_data = buffer.getvalue()
 
-
-                    # Calculate the time difference
-                    #if isinstance(total_hours, float):
-                     #   time_difference = round(estimated_time - total_hours, 2)  # Difference between estimated time and total hours worked
-                    #else:
-                     #   time_difference = "N/A"  # If job is still in progress, time difference cannot be calculated
-
-
-                    # Fetch customer name from Sample.xslx
-                    job_details = get_job_details(job_id)
-
-                    customer_name = job_details["customerName"]
-                    drawing_no = job_details["drawingNumber"]
-                    cell_no = job_details["cellNo"]
-                    qty = job_details["quantity"]
-
-
-
-                    # Ensure proper deduction of worked hours from estimated time
-                    display_remaining_time = round(remaining_time,2)
-                    records.append({
-                        'staffName': staff_name,
-                        'jobId': job_id,
-                        'startTime': start_time or 'NA',
-                        'stopTime': stop_time if stop_time else "In Progress",
-                        'totalHoursWorked': total_hours if total_hours != 0 else "In Progress",
-                        'estimatedTime': estimated_time,
-                        'remainingTime': display_remaining_time,
-                        'customerName': customer_name,
-                        'drawingNumber': drawing_no,
-                        'cellNo': cell_no,
-                        'quantity':qty,
-                        'laborCost': labor_cost    
-                    })
-
-                print(f"Response records: {records}")
-                # Respond with records
+                # Send Gzip response
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Cache-Control', 'no-store')  #Prevent caching
+                self.send_header('Content-Encoding', 'gzip')  # Tell browser response is compressed
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(compressed_data)))  # Required for gzip
                 self.end_headers()
-                response = {'records': records}
-                self.wfile.write(json.dumps(response).encode('utf-8'))
+                self.wfile.write(compressed_data)
 
             except Exception as e:
-                print(f"Error: Timestamp format is incorrect - StartTime={start_time}, StopTime={stop_time}")
-                print(f"Error in /view-times: {str(e)}")  # Log errors
+                print(f"Error in /view-times: {str(e)}")
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+
 
 
         elif self.path == '/view-running-jobs':
@@ -478,7 +478,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Send response
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Cache-Control', 'no-store')  #Prevents caching
+                self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
 
                 response = {'runningJobs': running_jobs}

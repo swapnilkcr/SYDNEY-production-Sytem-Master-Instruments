@@ -17,6 +17,7 @@ fetch('http://10.0.2.161:3003/get-config')
   })
   .catch(error => {
     console.error('❌ Error fetching config:', error);
+    
   });
 
 
@@ -41,8 +42,10 @@ fetch('http://10.0.2.161:3003/get-config')
   });
   
   window.addEventListener('popstate', (event) => {
+    console.log("Popstate event triggered");  // Debugging log
     // Redirect back to the layout page if the user presses the back button
     if (window.location.pathname === '/layout.html') {
+      console.warn("⚠️ history.replaceState() is running");
       history.replaceState(null, null, window.location.href);
     }
   })
@@ -60,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const recordsTable = document.getElementById('records-table');
   const tableBody = recordsTable.querySelector('tbody');  // Table body for records
   const messageDiv = document.getElementById('message');
+  const FinishBtn = document.getElementById('finish-btn');
   
 
   
@@ -133,14 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  fetchFinishedJobs();  // Ensure jobs are loaded first
-
-  const searchInput = document.getElementById('pn-search');
-  if (searchInput) {
-      searchInput.addEventListener('keyup', searchByPN);
-  } else {
-      console.error("Error: Search input element not found.");
-  }
+  
   // Stop button logic
   /*stopBtn.addEventListener('click', () => {
     const runningJobSelect = document.getElementById('running-job-select');
@@ -225,8 +222,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // View Running Jobs Logic (view running jobs button)
+  if (!viewRunningJobsBtn) {
+    console.error('View Running Jobs button element not found!');
+  }
   viewRunningJobsBtn.addEventListener('click', (event) => {
     event.preventDefault(); // Prevent default behavior
+    if (!BASE_URL) {
+      console.error('BASE_URL is not set!');
+      return;
+    }
     console.log('View Running Jobs button clicked');
     messageDiv.textContent = 'Loading running jobs...';  // Show loading message
     tableBody.innerHTML = '';  // Clear any existing rows
@@ -295,7 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetch(`${BASE_URL}/view-times`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        "Accept-Encoding": "gzip",  // Tell server we accept compressed data
+        "Content-Type": "application/json"},
     })
       .then(response => {
         console.log("Fetch response status:", response.status);
@@ -364,6 +370,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   });
 
+  fetchFinishedJobs();  // Ensure jobs are loaded first
+
+  const searchInput = document.getElementById('pn-search');
+  if (searchInput) {
+      searchInput.addEventListener('keyup', searchByPN);
+  } else {
+      console.error("Error: Search input element not found.");
+  }
+
   document.getElementById('export-btn').addEventListener('click', () => {
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = 'Exporting data to Excel...';
@@ -424,10 +439,44 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(error => {
         console.error('Error fetching running jobs:', error);
       });
-  }
+  }  
 
 
+  FinishBtn.addEventListener('click', () => {
+    const staffName = document.getElementById('staff-select').value;
+    const jobId = document.getElementById('job-select').value;
   
+    if (!staffName || !jobId) {
+        alert('Please select a staff member and a job.');
+        return;
+    }
+  
+    fetch(`${BASE_URL}/finish-job`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffName, jobId }),
+    })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data); // Debug: Inspect the received data
+          if (data.message) {
+              const laborCost = (typeof data.laborCost === 'number' && !isNaN(data.laborCost)) 
+                  ? data.laborCost.toFixed(2) 
+                  : 'N/A';
+              const totalLaborCost = (typeof data.totalLaborCost === 'number' && !isNaN(data.totalLaborCost)) 
+                  ? data.totalLaborCost.toFixed(2) 
+                  : 'N/A';
+              alert(`Job finished successfully! Labor Cost: $${laborCost}, Total Labor Cost for Job: $${totalLaborCost}`);
+          } else {
+              alert('Failed to finish the job.');
+          }
+      })
+      
+        .catch(error => {
+            console.error('Error finishing job:', error);
+            alert('Error finishing job: ' + error.message);
+        });
+  })
   
 });
 
@@ -437,7 +486,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let fetchJobsCalled = false;
 
   function fetchJobs() {
+    console.log("🔍 fetchJobs() called at:", new Date().toISOString());  // Track every call
+
     if (fetchJobsCalled) {
+
           console.warn("⚠️ fetchJobs() already called! Skipping.");
           return;
     }
@@ -659,41 +711,6 @@ function addStaff() {
 
 
 // FINISH JOB
-document.getElementById('finish-btn').addEventListener('click', () => {
-  const staffName = document.getElementById('staff-select').value;
-  const jobId = document.getElementById('job-select').value;
-
-  if (!staffName || !jobId) {
-      alert('Please select a staff member and a job.');
-      return;
-  }
-
-  fetch(`${BASE_URL}/finish-job`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ staffName, jobId }),
-  })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data); // Debug: Inspect the received data
-        if (data.message) {
-            const laborCost = (typeof data.laborCost === 'number' && !isNaN(data.laborCost)) 
-                ? data.laborCost.toFixed(2) 
-                : 'N/A';
-            const totalLaborCost = (typeof data.totalLaborCost === 'number' && !isNaN(data.totalLaborCost)) 
-                ? data.totalLaborCost.toFixed(2) 
-                : 'N/A';
-            alert(`Job finished successfully! Labor Cost: $${laborCost}, Total Labor Cost for Job: $${totalLaborCost}`);
-        } else {
-            alert('Failed to finish the job.');
-        }
-    })
-    
-      .catch(error => {
-          console.error('Error finishing job:', error);
-          alert('Error finishing job: ' + error.message);
-      });
-})
 
 
 // Function to open the modal and fetch data
@@ -711,7 +728,7 @@ function openModal(modalId) {
 
   // Fetch data for Total Labor Cost modal
   if (modalId === 'TotalLaborcost') {
-    fetch('http://10.0.2.161:3000/get-totallaborcost')
+    fetch('http://10.0.2.161:3003/get-totallaborcost')
       .then(response => response.json())
       .then(data => {
         const jobListContainer = document.getElementById('job-list-container');
@@ -836,141 +853,71 @@ function openFinishedJobsModal() {
   fetchFinishedJobs();
 }
 
-<<<<<<< HEAD
-// Fetch and display finished jobs
+
+// Define the fetchFinishedJobs function
 function fetchFinishedJobs() {
-  fetch(`${BASE_URL}/view-finished-jobs`)
-=======
+  fetch('http://10.0.2.161:3003//view-finished-jobs')
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Finished Jobs Data:', data);
+      const container = document.getElementById('finished-jobs-container');
+      if (container) {
+        container.innerHTML = ''; // Clear previous content
+        if (data.jobs && data.jobs.length > 0) {
+          const table = document.createElement('table');
+          table.className = 'finished-jobs-table';
+          table.innerHTML = `
+            <thead>
+              <tr>
+                ${Object.keys(data.jobs[0]).map(col => `<th>${col}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${data.jobs.map(job => `
+                <tr>
+                  ${Object.values(job).map(value => `<td>${value}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          `;
+          container.appendChild(table);
+        } else {
+          container.innerHTML = '<p>No finished jobs found.</p>';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching finished jobs:', error);
+      const container = document.getElementById('finished-jobs-container');
+      if (container) {
+        container.innerHTML = '<p>Error loading finished jobs.</p>';
+      }
+    });
+}
+
+// Call fetchFinishedJobs when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   if (window.location.pathname.includes('finished-jobs.html')) {
     fetchFinishedJobs();
   }
 });
 
+console.log("🔍 Page loaded at:", new Date().toISOString());
+
+// Track when the page fully loads
+window.onload = function () {
+    console.log("✅ window.onload triggered at:", new Date().toISOString());
+};
+
+// Detect when the page is about to reload
+window.addEventListener("beforeunload", function () {
+    console.log("⚠️ Page is reloading at:", new Date().toISOString());
+});
 
 
-/*function fetchFinishedJobs() {
-  fetch('http://10.0.2.161:3003/view-finished-jobs')
->>>>>>> develop
-    .then(response => response.json())
-    .then(data => {
-      const container = document.getElementById('finished-jobs-container');
-      container.innerHTML = '';
-      
-      if (data.jobs && data.jobs.length > 0) {
-        const table = document.createElement('table');
-        table.className = 'finished-jobs-table';
-        table.innerHTML = `
-          <thead>
-            <tr>
-              ${Object.keys(data.jobs[0]).map(col => `<th>${col}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${data.jobs.map(job => `
-              <tr>
-                ${Object.values(job).map(value => `<td>${value}</td>`).join('')}
-              </tr>
-            `).join('')}
-          </tbody>
-        `;
-        container.appendChild(table);
-      } else {
-        container.innerHTML = '<p>No finished jobs found</p>';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching finished jobs:', error);
-      document.getElementById('finished-jobs-container').innerHTML = 
-        '<p>Error loading finished jobs</p>';
-    });
-}
-
-// Filter function
-function filterFinishedJobs() {
-  const input = document.getElementById('filter-finished').value.toLowerCase();
-  const table = document.querySelector('.finished-jobs-table');
-  if (!table) return;
-
-  const rows = table.tBodies[0].rows;
-  for (const row of rows) {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(input) ? '' : 'none';
-  }
-}*/
-
-
-let currentPage = 1;
-const rowsPerPage = 10; // Number of rows per page
-let allJobs = []; // Store all fetched jobs
-
-
-
-function fetchFinishedJobs() {
-  fetch('http://10.0.2.161:3003/view-finished-jobs')
-    .then(response => response.json())
-    .then(data => {
-      if (data.jobs && data.jobs.length > 0) {
-        allJobs = data.jobs; // Store all jobs
-        displayTable(currentPage); // Display the first page
-        setupPagination(allJobs.length); // Set up pagination controls
-      } else {
-        document.getElementById('finished-jobs-container').innerHTML = '<p>No finished jobs found.</p>';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching finished jobs:', error);
-      document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
-    });
-}
-
-function displayTable(page) {
-  const container = document.getElementById('finished-jobs-container');
-  container.innerHTML = '';
-
-  const start = (page - 1) * rowsPerPage;
-  const end = start + rowsPerPage;
-  const paginatedJobs = allJobs.slice(start, end);
-
-  if (paginatedJobs.length > 0) {
-    const table = document.createElement('table');
-    table.className = 'finished-jobs-table';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          ${Object.keys(paginatedJobs[0]).map(col => `<th>${col}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>
-        ${paginatedJobs.map(job => `
-          <tr>
-            ${Object.values(job).map(value => `<td>${value}</td>`).join('')}
-          </tr>
-        `).join('')}
-      </tbody>
-    `;
-    container.appendChild(table);
-  } else {
-    container.innerHTML = '<p>No data to display.</p>';
-  }
-}
-
-function setupPagination(totalRows) {
-  const paginationContainer = document.getElementById('pagination');
-  paginationContainer.innerHTML = '';
-
-  const pageCount = Math.ceil(totalRows / rowsPerPage);
-
-  for (let i = 1; i <= pageCount; i++) {
-    const button = document.createElement('button');
-    button.innerText = i;
-    button.addEventListener('click', () => {
-      currentPage = i;
-      displayTable(currentPage);
-    });
-    paginationContainer.appendChild(button);
-  }
-}
 
 
 

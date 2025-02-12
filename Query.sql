@@ -1,4 +1,5 @@
 
+PRAGMA table_info(MergedData);
 
 
 INSERT INTO Users (username, password) 
@@ -62,7 +63,17 @@ Select * from JobTable;
 DELETE FROM PN_DATA where PN = 'C004';
 
 select * from JobTable;
-  
+CREATE INDEX idx_job_id ON ClockInOut(JobID);
+CREATE INDEX idx_start_time ON ClockInOut(StartTime);
+CREATE INDEX idx_stop_time ON ClockInOut(StopTime);
+
+
+PRAGMA journal_mode = WAL;  -- Better concurrency
+PRAGMA synchronous = NORMAL; -- Reduces disk I/O
+PRAGMA cache_size = 10000;   -- Improves caching
+PRAGMA temp_store = MEMORY;  -- Keeps temp tables in RAM
+
+
 
 
 

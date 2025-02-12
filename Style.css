@@ -333,8 +333,6 @@ html, body {
   display: none; /* Hidden by default */
   margin-top: 25px;
   font-size:15px;
-<<<<<<< HEAD
-=======
 }
 
 .filter-container1{
@@ -342,7 +340,6 @@ html, body {
   font-size:15px;
   display: flex;
   justify-content: center;
->>>>>>> develop
 }
 
 #filter-input {
@@ -359,8 +356,6 @@ html, body {
   box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1);
   align-items: center;
   height:40px;
-<<<<<<< HEAD
-=======
 }
 
 input#jobid-search1 {
@@ -369,7 +364,6 @@ input#jobid-search1 {
   margin-bottom: 10px;
   width: 40%;
   font-size: 15px;
->>>>>>> develop
 }
 
 .nav1{
@@ -653,11 +647,7 @@ button.searchAv {
 
 .head1 h1{
   position: relative;
-<<<<<<< HEAD
-  left: 400px;
-=======
   left: 300px;
->>>>>>> develop
   font-size: 20px;
 }
 
@@ -815,10 +805,6 @@ div#user-info {
 img.imglogo {
   height: 43px;
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
 
 
 

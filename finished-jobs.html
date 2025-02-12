@@ -22,56 +22,7 @@
   <script src="clock.js"></script>
   
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-  fetchFinishedJobs();
-});
-
-function fetchFinishedJobs() {
-  fetch('http://10.0.2.161:3003/view-finished-jobs')
-    .then(response => response.json())
-    .then(data => {
-      const container = document.getElementById('finished-jobs-container');
-      container.innerHTML = '';
-
-      if (data.jobs && data.jobs.length > 0) {
-        const table = document.createElement('table');
-        table.className = 'finished-jobs-table';
-        table.innerHTML = `
-          <thead>
-            <tr>
-              ${Object.keys(data.jobs[0]).map(col => `<th>${col}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${data.jobs.map(job => `
-              <tr>
-                ${Object.values(job).map(value => `<td>${value}</td>`).join('')}
-              </tr>
-            `).join('')}
-          </tbody>
-        `;
-        container.appendChild(table);
-      } else {
-        container.innerHTML = '<p>No finished jobs found.</p>';
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching finished jobs:', error);
-      document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
-    });
-}
-
-function searchByPN() {
-    const input = document.getElementById('pn-search').value.toLowerCase();
-    const table = document.querySelector('.finished-jobs-table');
-    if (!table) return;
-
-    const rows = table.tBodies[0].rows;
-    for (const row of rows) {
-        const pnValue = row.cells[1].textContent.toLowerCase(); // Adjust index if PN is in a different column
-        row.style.display = pnValue.includes(input) ? '' : 'none';
-    }
-}
+    
 </script>
 </body>
 
