@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS ClockInOut (
     RecordID INTEGER PRIMARY KEY AUTOINCREMENT,
     StaffName TEXT,
     JobID TEXT,
-    start_time TIMESTAMP,
-    stop_time TIMESTAMP,
+    StartTime TIMESTAMP,
+    StopTime TIMESTAMP,
     status TEXT CHECK(status IN ('active', 'completed')) DEFAULT 'active'
 )
 ''')

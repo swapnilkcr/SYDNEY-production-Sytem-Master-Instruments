@@ -440,7 +440,7 @@ fetch('http://10.0.2.161:3003/get-config')
       });
   }  
 
-  //fetchFinishedJobs();
+  
   
   
 });
@@ -896,9 +896,9 @@ function fetchFinishedJobs() {
       document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
     });
 }
-/*document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   fetchFinishedJobs();
-});*/
+});
 
 function searchByPN() {
     const input = document.getElementById('pn-search').value.toLowerCase();

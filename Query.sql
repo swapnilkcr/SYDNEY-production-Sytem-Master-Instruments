@@ -78,7 +78,7 @@ PRAGMA temp_store = MEMORY;  -- Keeps temp tables in RAM
 
 
 
-PRAGMA TABLE_INFO(JOBSFINISHED)
+PRAGMA TABLE_INFO(ClockInOut);
 
 CREATE TABLE IF NOT EXISTS MergedData (
     DrawNo TEXT PRIMARY KEY,
