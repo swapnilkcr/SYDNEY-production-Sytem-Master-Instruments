@@ -17,7 +17,7 @@ import time
 from config import ENV, PORT  # Import environment variables
 import gzip
 import json
-from io import BytesIO
+from io import BytesIO  
 
 
 
@@ -365,6 +365,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
 
+
         elif self.path == '/view-times':
             try:
                 conn = sqlite3.connect('clock_in_management.db')
@@ -400,8 +401,6 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 ''')
 
                 rows = cursor.fetchall()
-                print(f"🔍 DEBUG: Retrieved rows from database: {rows}")  # Add this line
-
                 conn.close()
 
                 # Process data
@@ -444,7 +443,6 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
-
 
 
 
