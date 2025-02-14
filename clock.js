@@ -42,14 +42,14 @@ fetch('http://10.0.2.161:3003/get-config')
     console.log(`Logged in as: ${username} (Role: ${userRole})`);
   
   
-  window.addEventListener('popstate', (event) => {
+  /*window.addEventListener('popstate', (event) => {
     event.preventDefault();
     // Redirect back to the layout page if the user presses the back button
     if (window.location.pathname === '/layout.html') {
       console.warn("⚠️ history.replaceState() is running");
       history.replaceState(null, null, window.location.href);
     }
-  })
+  })*/
   
 
 
@@ -898,7 +898,7 @@ function fetchFinishedJobs() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   fetchFinishedJobs();
-});
+})
 
 function searchByPN() {
     const input = document.getElementById('pn-search').value.toLowerCase();

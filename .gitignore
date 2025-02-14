@@ -1,7 +1,6 @@
 _pycache_
 config_test.py
 config_prod.py
-*.db
 clock_in_management.db
 Query.sql
 clock_in_management.db-shm

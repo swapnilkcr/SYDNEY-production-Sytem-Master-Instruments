@@ -18,6 +18,9 @@ from config import ENV, PORT  # Import environment variables
 import gzip
 import json
 from io import BytesIO  
+import sqlite3
+from datetime import datetime
+import json
 
 
 
@@ -269,8 +272,6 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Cache-Control', 'no-store')  # 🔥 Prevent caching
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('X-Content-Type-Options', 'nosniff')
 
         
         if self.path == '/get-staff':
@@ -582,7 +583,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.send_header('X-Content-Type-Options', 'nosniff')
         if self.path == '/clock-in':
             content_length = int(self.headers['Content-Length'])
@@ -877,9 +880,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
      #Finish job       
     def handle_finish_job(self):
-        import sqlite3
-        from datetime import datetime
-        import json
+        
 
         hourly_rate = 25.0  # Fixed hourly labor cost
         content_length = int(self.headers.get('Content-Length', 0))
