@@ -70,7 +70,7 @@
       <div id="error-message" class="error"></div>
     </form>
   </div>
-
+  <script src="clock.js"></script>
   <script>
   
   // Hardcoded credentials with roles(replace with backend authentication in future)
@@ -113,8 +113,8 @@ const credentials = {
     localStorage.setItem('userRole', user.role);
 
     // Redirect to clock-in system
-    window.location.href = "http://10.0.2.161:3004/layout.html"; // Replace with your clock-in system page
-    history.replaceState(null, null, "http://10.0.2.161:3004/layout.html");
+    window.location.href = `${BASE_URL}/layout.html`; // Replace with your clock-in system page
+    history.replaceState(null, null, `${BASE_URL}/layout.html`);
   } else {
     errorMessage.textContent = "Invalid username or password!";
   }
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verify against known credentials
     const validRoles = ['admin', 'staff'];
     if (validRoles.includes(userRole) && credentials[userRole]?.username === username) {
-      window.location.href = "http://10.0.2.161:3004/layout.html";
+      window.location.href = `${BASE_URL}/layout.html`;
     } else {
       // Clear invalid credentials
       localStorage.clear();
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function logout() {
   localStorage.removeItem('username');
   localStorage.removeItem('userRole');
-  window.location.href = "http://10.0.2.161:3004/Login.html";
+  window.location.href = `${BASE_URL}/Login.html`;
 }
   </script>
 </body>

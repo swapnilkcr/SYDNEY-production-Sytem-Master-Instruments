@@ -69,7 +69,7 @@
 
     //Add new job
     function logout() {
-      window.location.href = 'http://10.0.2.161:3004/Login.html';
+      window.location.href = `${BASE_URL}/Login.html`;
     }
 
     function openModal(type) {
@@ -105,7 +105,7 @@
           return;
         }
 
-        fetch("http://10.0.2.161:3003/move-job", {
+        fetch(`${backendBaseUrl}/move-job`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ jobId: selectedJobId })
@@ -165,7 +165,7 @@ function searchAV() {
     document.querySelector('#viewAVModal .modal-content').appendChild(loadingMessage);
 
     // Fetch AV based on STOCK CODE
-    fetch(`http://10.0.2.161:3003/get-av?stockCode=${encodeURIComponent(stockCode)}`)
+    fetch(`${backendBaseUrl}/get-av?stockCode=${encodeURIComponent(stockCode)}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('loadingMessage').remove();  // Remove loading message

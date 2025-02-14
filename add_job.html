@@ -112,7 +112,7 @@
             orderDate: document.getElementById('orderDate').value
         };
 
-        fetch('http://10.0.2.161:3003/add_job', {
+        fetch(`${backendBaseUrl}/add_job`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
