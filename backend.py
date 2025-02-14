@@ -14,7 +14,7 @@ import websockets
 from urllib.parse import parse_qs,urlparse 
 import urllib.parse
 import time
-from config import ENV, PORT  # Import environment variables
+from config import ENV, PORT,BASE_URL  # Import environment variables
 import gzip
 import json
 from io import BytesIO  
@@ -563,14 +563,12 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
         elif self.path == "/get-config":
-            config_data = {"PORT": PORT}
+             # Serve the BASE_URL to the frontend
             self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header('Cache-Control', 'no-store')  #Prevents caching
+            self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(config_data).encode("utf-8"))
-
-
+            response = {'base_url': BASE_URL}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
             self.send_header('Cache-Control', 'no-store')  #Prevents caching

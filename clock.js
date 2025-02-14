@@ -4,12 +4,17 @@
 
 let BASE_URL = "";  // Placeholder for dynamic port
 
+const frontendBaseUrl = window.location.origin; // This will get the frontend's domain and port
+
+// Now, build the backend URL dynamically based on the frontend's origin
+const backendBaseUrl = frontendBaseUrl.replace(window.location.port, '3003'); 
+
 // Fetch the correct backend port from the server
-fetch('http://10.0.2.161:3003/get-config')
+fetch(`${backendBaseUrl}/get-config`)
   .then(response => response.json())
   .then(config => {
-    BASE_URL = `http://10.0.2.161:${config.PORT}`;
-    console.log("✅ Backend Port:", config.PORT);
+    BASE_URL = config.base_url;;
+    console.log("✅ Backend URL:", BASE_URL);
     
     // Now fetch staff and jobs AFTER getting the correct PORT
     fetchStaff();
@@ -693,7 +698,7 @@ function openModal(modalId) {
 
   // Fetch data for Total Labor Cost modal
   if (modalId === 'TotalLaborcost') {
-    fetch('http://10.0.2.161:3003/get-totallaborcost')
+    fetch(`${BASE_URL}/get-totallaborcost`)
       .then(response => response.json())
       .then(data => {
         const jobListContainer = document.getElementById('job-list-container');
@@ -734,7 +739,7 @@ let finishedJobs = [];
 
 // Fetch job data from the server and display it
 function fetchJobData() {
-    fetch('http://10.0.2.161:8080/get-totallaborcost')
+    fetch(`${BASE_URL}/get-totallaborcost`)
         .then(response => response.json())
         .then(data => {
             jobsData = data.jobs;  // Store the fetched jobs
@@ -862,7 +867,7 @@ finishBtn.addEventListener('click', (event) => {
 
 
 function fetchFinishedJobs() {
-  fetch('http://10.0.2.161:3003/view-finished-jobs')
+  fetch(`${backendBaseUrl}/view-finished-jobs`)
     .then(response => response.json())
     .then(data => {
       console.log('Finished Jobs Data:', data);

@@ -2,24 +2,16 @@
 body {
   font-family: Arial, sans-serif;
   margin: 0;  /* Remove default body margin */
-  /*background-image: url('backgimg.jpg');
- /* background-size: cover; /* Make the background cover the entire page */
-  /*background-position: center; /* Center the background image */
-  /*background-repeat: no-repeat; /* Prevent the background from repeating */
+  background-image: url('backgimg.jpg');
+  background-size: cover; /* Make the background cover the entire page */
+  background-position: center; /* Center the background image */
+  background-repeat: no-repeat; /* Prevent the background from repeating*/ 
   height: 100vh; /* Ensure the body takes up the full viewport height */
   margin: 0; /* Remove default margins */
 }
 
-body {
-  background: linear-gradient(45deg, #004d40, #00796b);
-  background-size: 400% 400%;
-  animation: gradientMove 10s infinite alternate;
-}
 
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
+
 
 body, body.new-font-family * {
   font-family: 'Inter',sans-serif !important;
@@ -27,20 +19,20 @@ body, body.new-font-family * {
 
 /* Separate Header */
 header {
-    display: flex;
-    background-color: #f4d35e;
-    padding: 20px;
-    text-align: center;
-    color: black;
-    position: relative;
-    font-style: italic;
-    font-weight: 700;
-    font-size: 20px;
-    /* box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1); */
-    /* width: 100%; */
-    justify-content: space-between;
-    align-items:center;
-    height:16px;
+  display: flex;
+  background-color: teal;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  position: relative;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 20px;
+  /* box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1); */
+  /* width: 100%; */
+  justify-content: space-between;
+  align-items: center;
+  height: 16px;
 }
 
 .headr {
@@ -810,7 +802,7 @@ div#user-info {
   margin-right: 20px;
   font-family: sans-serif;
   font-style: normal;
-  font-weight: 100;
+  font-weight: 600;
 }
 
 img.imglogo {

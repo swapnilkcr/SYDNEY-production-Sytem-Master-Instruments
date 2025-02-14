@@ -22,7 +22,8 @@ load_dotenv(env_path)
 # Get environment variables
 ENV = os.getenv('ENV', 'test')  # Default to test
 PORT = int(os.getenv('PORT', 3003))  # Default port is 3000
+BASE_URL = os.getenv('BASE_URL', f'http://127.0.0.1:{PORT}')  # Default to localhost
 
-# Debugging: Print environment details
 print(f"Loaded environment: {ENV}")
 print(f"Running on port: {PORT}")
+print(f"Base URL: {BASE_URL}")
