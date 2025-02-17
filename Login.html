@@ -94,7 +94,8 @@ const credentials = {
     history.pushState(null, null, window.location.href);
   });
 
-  document.getElementById('login-button').addEventListener('click', () => {
+  document.getElementById('login-button').addEventListener('click', (event) => {
+    event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const errorMessage = document.getElementById('error-message');
@@ -113,8 +114,8 @@ const credentials = {
     localStorage.setItem('userRole', user.role);
 
     // Redirect to clock-in system
-    window.location.href = `${BASE_URL}/layout.html`; // Replace with your clock-in system page
-    history.replaceState(null, null, `${BASE_URL}/layout.html`);
+    window.location.href = 'layout.html'; // Replace with your clock-in system page
+    history.replaceState(null, null, 'layout.html');
   } else {
     errorMessage.textContent = "Invalid username or password!";
   }

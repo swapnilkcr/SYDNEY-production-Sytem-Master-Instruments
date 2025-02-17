@@ -2,7 +2,7 @@ import sqlite3
 import openpyxl
 
 DB_NAME = "clock_in_management.db"
-EXCEL_FILE = "PN_DATA.xlsx"
+EXCEL_FILE = r"S:\USERDATA\Swapnil\MI_clockin_out\Clock_in_test\app\PN_DATA.xlsx"
 
 def create_PN_table():
     """Create the Jobs table with all columns from Excel."""

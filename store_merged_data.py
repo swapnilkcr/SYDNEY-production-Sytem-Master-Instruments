@@ -17,7 +17,7 @@ def store_merged_data_to_db():
             )
         ''')
 
-        workbook = openpyxl.load_workbook('SampleAV.xlsx')
+        workbook = openpyxl.load_workbook(r"S:\USERDATA\Swapnil\MI_clockin_out\Clock_in_test\app\SampleAV.xlsx")
         sheet = workbook['MergedData']
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
