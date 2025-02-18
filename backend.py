@@ -239,7 +239,7 @@ def get_av_by_stock_code(stock_code):
         cursor = conn.cursor()
 
         # Query to fetch AV using STOCK CODE
-        cursor.execute('SELECT AV FROM MergedData WHERE StockCode = ?', (stock_code,))
+        cursor.execute('SELECT AV FROM MergedData WHERE STOCKCODE = ?', (stock_code,))
         result = cursor.fetchone()
         conn.close()
 

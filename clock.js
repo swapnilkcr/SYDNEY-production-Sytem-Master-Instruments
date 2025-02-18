@@ -7,24 +7,56 @@ let BASE_URL = "";  // Placeholder for dynamic port
 const frontendBaseUrl = window.location.origin; // This will get the frontend's domain and port
 
 // Now, build the backend URL dynamically based on the frontend's origin
-const backendBaseUrl = frontendBaseUrl.replace(window.location.port, '3003'); 
+//const backendBaseUrl = frontendBaseUrl.replace(window.location.port, '3003'); 
 
-// Fetch the correct backend port from the server
+const urlParams = new URLSearchParams(window.location.search);
+let env = urlParams.get('env'); // Get environment from URL
+
+// Detect if running from file:// (no HTTP origin)
+if (!env) {
+    if (window.location.protocol === "file:") {
+        // Check the file path to determine the environment
+        const filePath = window.location.pathname || window.location.href;
+
+        if (filePath.includes("Clock_In_test")) {
+            env = "test"; // Set to test environment
+            console.warn("⚠️ Running from Test file path, defaulting to Test mode.");
+        } else if (filePath.includes("Clock_In_prod")) {
+            env = "prod"; // Set to prod environment
+            console.warn("⚠️ Running from Prod file path, defaulting to Prod mode.");
+        } else {
+            env = "test"; // Default to test if path doesn't match
+            console.warn("⚠️ Running from file://, but path not recognized. Defaulting to Test mode.");
+        }
+    } else {
+        // Fallback for non-file:// protocols
+        env = window.location.port === "3004" ? "test" : "prod";
+    }
+}
+
+// Set backend based on environment
+const BACKEND_IP = "10.0.2.161";
+const backendBaseUrl = env === "test" 
+  ? `http://${BACKEND_IP}:3003`  // Test backend
+  : `http://${BACKEND_IP}:3000`; // Prod backend
+
+console.log(`🔄 Detected Environment: ${env}`);
+console.log(`🔗 Backend Base URL: ${backendBaseUrl}`);
+
 fetch(`${backendBaseUrl}/get-config`)
   .then(response => response.json())
   .then(config => {
-    BASE_URL = config.base_url;;
+    BASE_URL = config.base_url || backendBaseUrl;
     console.log("✅ Backend URL:", BASE_URL);
-    
-    // Now fetch staff and jobs AFTER getting the correct PORT
     fetchStaff();
     fetchJobs();
   })
   .catch(error => {
     console.error('❌ Error fetching config:', error);
-    
+    BASE_URL = backendBaseUrl; // Fallback
+    fetchStaff();
+    fetchJobs();
   });
-
 
 
   document.addEventListener('DOMContentLoaded', (event) => {
