@@ -374,53 +374,62 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Optimized SQL query (from previous steps)
                 cursor.execute('''
-                    SELECT 
-                        c.StaffName, 
-                        c.JobID, 
-                        c.StartTime, 
-                        c.StopTime, 
-                        c.LaborCost, 
-                        j.CUST, j."DRAW NO", j."NO/CELL", j.QTY, j."REQU-DATE",
-                        
-                        -- Compute Estimated Time from AV * QTY
-                        COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
+                   SELECT 
+                    c.RecordID, 
+                    c.StaffName, 
+                    c.JobID, 
+                    c.StartTime, 
+                    c.StopTime, 
+                    c.LaborCost, 
+                    j.CUST AS CustomerName, 
+                    j."DRAW NO" AS DrawingNumber, 
+                    j."NO/CELL" AS CellNo, 
+                    j.QTY AS Quantity, 
+                    j."REQU-DATE" AS RequestDate,
 
-                        -- Compute Total Hours Worked using SUM in SQL
-                        ROUND(COALESCE(SUM(
-                            CASE 
-                                WHEN c.StopTime IS NOT NULL THEN 
-                                    (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0 
-                                ELSE 
-                                    (strftime('%s', 'now') - strftime('%s', c.StartTime)) / 3600.0 
-                            END
-                        ), 0.0),2) AS TotalHoursWorked 
+                    -- Compute Estimated Time from AV * QTY
+                    COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
 
-                    FROM ClockInOut c
-                    LEFT JOIN PN_DATA j ON c.JobID = j.PN
-                    LEFT JOIN MergedData p ON j.PN = p.StockCode
-                    GROUP BY c.JobID, c.StaffName
+                    -- Compute Total Hours Worked PER ENTRY
+                    ROUND(COALESCE(
+                        (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
+                    ),2) AS TotalHoursWorked 
+
+                FROM ClockInOut c
+                LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                LEFT JOIN MergedData p ON j.PN = p.StockCode
+
+                ORDER BY c.StartTime;
+
+
                 ''')
 
                 rows = cursor.fetchall()
                 conn.close()
+                
+                for row in rows:
+                    print("Row data:", row) 
 
                 # Process data
                 records = [
                     {
-                        'staffName': row[0],
-                        'jobId': row[1],
-                        'startTime': row[2] or 'NA',
-                        'stopTime': row[3] if row[3] else "In Progress",
-                        'totalHoursWorked': row[11] if row[11] != 0 else "In Progress",
-                        'estimatedTime': row[10],
-                        'remainingTime': round(row[10] - row[11], 2),
-                        'customerName': row[5] or "Unknown",
-                        'drawingNumber': row[6] or "Unknown",
-                        'cellNo': row[7] or "Unknown",
-                        'quantity': row[8] or "Unknown",
-                        'laborCost': row[4] if row[4] is not None else "N/A"
+                        'recordId': row[0],
+                        'staffName': row[1],
+                        'jobId': row[2],
+                        'startTime': row[3] or 'NA',
+                        'stopTime': row[4] if row[4] else "In Progress",
+                        'laborCost': row[5] if row[5] is not None else "N/A",
+                        'customerName': row[6] or "Unknown",
+                        'drawingNumber': row[7] or "Unknown",
+                        'cellNo': row[8] or "Unknown",
+                        'quantity': row[9] or "Unknown",
+                        'requDate': row[10],  # Date field handled as string
+                        'estimatedTime': float(row[11]) if row[11] else 0.0,
+                        'totalHoursWorked': float(row[12]) if row[12] else 0.0,
+                        'remainingTime': round(float(row[11]) - float(row[12]), 2)
                     } for row in rows
                 ]
+
 
                 # Convert JSON to compressed Gzip format
                 json_data = json.dumps({'records': records}).encode('utf-8')
