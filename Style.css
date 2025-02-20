@@ -593,14 +593,13 @@ input#drawNo {
 }
 
 .close {
-
   top: -120px;
-  color: red;
+  color: crimson;
   float: right;
-  font-size: 30px;
-  border: 2px solid black;
+  font-size: 32px;
+  /* border: 1px solid black; */
   font-weight: bold;
-  background-color: lightgrey;
+  background-color: white;
   padding: 4px;
 }
 
