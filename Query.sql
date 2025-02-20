@@ -52,7 +52,7 @@ CREATE TABLE FinishedJobs (
     TotalLaborCost REAL
 );
 
-
+DELETE  FROM clockInOut;
 
 .tables
 Select * From ClockInOut;
@@ -74,7 +74,7 @@ PRAGMA cache_size = 10000;   -- Improves caching
 PRAGMA temp_store = MEMORY;  -- Keeps temp tables in RAM
 
 
-
+Select * from ClockInOut;
 
 
 
@@ -108,6 +108,34 @@ SELECT * FROM Users;
 
 ALTER TABLE JobTable ADD COLUMN EstimatedTime REAL;
 ALTER TABLE JobTable ADD COLUMN TotalHoursWorked REAL;
+
+
+SELECT 
+    c.RecordID, 
+    c.StaffName, 
+    c.JobID, 
+    c.StartTime, 
+    c.StopTime, 
+    c.LaborCost, 
+    j.CUST AS CustomerName, 
+    j."DRAW NO" AS DrawingNumber, 
+    j."NO/CELL" AS CellNo, 
+    j.QTY AS Quantity, 
+    j."REQU-DATE" AS RequestDate,
+
+    -- Compute Estimated Time from AV * QTY
+    COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
+
+    -- Compute Total Hours Worked PER ENTRY
+    ROUND(COALESCE(
+        (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
+    ),2) AS TotalHoursWorked 
+
+FROM ClockInOut c
+LEFT JOIN PN_DATA j ON c.JobID = j.PN
+LEFT JOIN MergedData p ON j.PN = p.StockCode
+
+ORDER BY c.StartTime;
 
 
 

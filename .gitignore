@@ -4,5 +4,6 @@ clock_in_management.db
 Query.sql
 clock_in_management.db-shm
 clock_in_management.db-wal
+*.db
 
 

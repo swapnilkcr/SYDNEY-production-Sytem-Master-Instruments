@@ -335,6 +335,8 @@ fetch(`${backendBaseUrl}/get-config`)
   viewBtn.addEventListener('click', (event) => {
     console.log('View button clicked'); // Debugging log
     event.preventDefault(); // Prevent default behavior
+    document.querySelector('.filter-container').style.display = 'block';
+
     const tableBody = document.querySelector('#records-table tbody');
     const messageDiv = document.getElementById('message');
     tableBody.innerHTML = '';  // Clear any existing rows
@@ -400,6 +402,11 @@ fetch(`${backendBaseUrl}/get-config`)
               <td>${estimatedTime} hrs</td>
               <td>${remainingTime} hrs</td>
               <td>${laborCost}</td>
+              ${localStorage.getItem('userRole') === 'admin' ? `
+                <button class="row-btn1"onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
+                <button class="row-btn2"onclick="deleteTime('${record.recordId}')">Delete</button>
+            ` : ''}
+               </td>
             `;
             tableBody.appendChild(row);  // Append row to the table body
           });
@@ -949,6 +956,55 @@ function searchByPN() {
     }
 }
 
+
+function editTime(recordId, currentStart, currentStop) {
+  const newStart = prompt('Enter new start time (YYYY-MM-DD HH:MM:SS):', currentStart);
+  const newStop = prompt('Enter new stop time (YYYY-MM-DD HH:MM:SS):', currentStop);
+  
+  if (newStart && newStop) {
+      fetch(`${BASE_URL}/edit-clock`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-User-Role': localStorage.getItem('userRole') || 'user'
+          },
+          body: JSON.stringify({
+              recordId,
+              newStartTime: newStart,
+              newStopTime: newStop
+          })
+      })
+      .then(response => {
+        if (!response.ok) return response.json().then(err => Promise.reject(err));
+        return response.json();
+    })
+    .then(data => {
+        alert(data.message);
+        document.getElementById('view-btn').click();
+    })
+    .catch(error => {
+        alert(`Error: ${error.error || error.message}`);
+    });
+}
+}
+
+function deleteTime(recordId) {
+  if (confirm('Are you sure you want to delete this record?')) {
+      fetch(`${BASE_URL}/delete-clock`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-User-Role': localStorage.getItem('userRole') || 'user'
+          },
+          body: JSON.stringify({ recordId })
+      })
+      .then(response => response.json())
+      .then(data => {
+          alert(data.message);
+          document.getElementById('view-btn').click(); // Refresh table
+      });
+  }
+}
 
 
 

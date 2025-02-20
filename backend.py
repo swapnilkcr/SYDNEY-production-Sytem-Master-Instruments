@@ -258,20 +258,23 @@ def get_av_by_stock_code(stock_code):
 
 # Define the HTTP request handler
 class ClockInOutHandler(BaseHTTPRequestHandler):
+    def set_cors_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type,X-User-Role')
+        self.send_header('Cache-Control', 'no-store')
+    
+    
     def do_OPTIONS(self):
         # Handle preflight requests for CORS
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.set_cors_headers()
         self.send_header('X-Content-Type-Options', 'nosniff')  
         self.end_headers()
     # Add the /view-running-jobs endpoint to the do_GET method
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Cache-Control', 'no-store')  # 🔥 Prevent caching
+        #self.send_response(200)
+        #self.set_cors_headers()
 
         
         if self.path == '/get-staff':
@@ -279,9 +282,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             staff_list = load_staff_from_csv('staff.csv')
 
             # Respond with the staff list
-            #self.send_response(200)
+            self.send_response(200)
+            self.set_cors_headers()
             self.send_header('Content-type', 'application/json')
-            self.send_header('Cache-Control', 'no-store') 
+            #self.send_header('Cache-Control', 'no-store') 
             self.end_headers()
             response = {'staff': staff_list}
             self.wfile.write(json.dumps(response).encode('utf-8'))
@@ -301,17 +305,17 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 job_records = [{'jobId': row[0], 'customer': row[1]} for row in jobs]
 
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Cache-Control', 'no-store') 
-                self.send_header('X-Content-Type-Options', 'nosniff') 
                 self.end_headers()
                 response = {'jobs': job_records}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 
             except Exception as e:
                 self.send_response(500)
+                self.set_cors_headers()
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Cache-Control', 'no-store')
+                #self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -331,8 +335,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 response = {'error': 'STOCK CODE parameter is required'}
 
             self.send_response(200)
+            self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
-            self.send_header('Cache-Control', 'no-store') 
+            #self.send_header('Cache-Control', 'no-store') 
             self.end_headers()
             self.wfile.write(json.dumps(response).encode('utf-8'))
 
@@ -353,6 +358,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 job_records = [{'jobId': job[0], 'totalLaborCost': job[1] or 0.0} for job in jobs]
 
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 response = {'jobs': job_records}
@@ -441,9 +447,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Send Gzip response
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Encoding', 'gzip')  # Tell browser response is compressed
-                self.send_header('Cache-Control', 'no-store')
+                #self.send_header('Cache-Control', 'no-store')
                 self.send_header('Content-Length', str(len(compressed_data)))  # Required for gzip
                 self.end_headers()
                 self.wfile.write(compressed_data)
@@ -451,6 +458,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(f"Error in /view-times: {str(e)}")
                 self.send_response(500)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -485,8 +493,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Send response
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-type', 'application/json')
-                self.send_header('Cache-Control', 'no-store')
+                #self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
 
                 response = {'runningJobs': running_jobs}
@@ -496,6 +505,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Handle errors
                 print(f"Error fetching running jobs: {str(e)}")
                 self.send_response(500)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -515,7 +525,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Send the Excel file as a response
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                self.send_header('Cache-Control', 'no-store')
+                #self.send_header('Cache-Control', 'no-store')
                 self.send_header('Content-Disposition', 'attachment; filename="clock_in_data.xlsx"')
                 self.end_headers()
                 self.wfile.write(output_stream.read())  # Write the file content to the response
@@ -523,7 +533,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 # Handle errors
                 self.send_response(500)
-                self.send_header('Cache-Control', 'no-store')
+                self.set_cors_headers()
+                #self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -559,14 +570,16 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 conn.close()
 
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Cache-Control', 'no-store')  #Prevents caching
+                #self.send_header('Cache-Control', 'no-store')  #Prevents caching
                 self.end_headers()
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 
             except Exception as e:
                 print(f"Error fetching finished jobs: {str(e)}")
                 self.send_response(500)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -580,7 +593,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(response).encode('utf-8'))
         else:
             self.send_response(404)
-            self.send_header('Cache-Control', 'no-store')  #Prevents caching
+            self.set_cors_headers()
+            #self.send_header('Cache-Control', 'no-store')  #Prevents caching
             self.end_headers()
 
     
@@ -588,12 +602,15 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         
     
     def do_POST(self):
-        self.send_response(200)
+        '''self.send_response(200)
+        self.set_cors_headers()
+        self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')  # Allow all origins
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Content-Type', 'application/json')
+        
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Content-Type-Options', 'nosniff')'''
+        
         if self.path == '/clock-in':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
@@ -615,11 +632,14 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             conn.close()
 
             self.send_response(200)
+            self.set_cors_headers()
             self.send_header('Content-type', 'application/json')
             self.end_headers()
 
             response = {'message': 'Data saved successfully!'}
             self.wfile.write(json.dumps(response).encode('utf-8'))
+
+
 
         elif self.path == '/start-job':
             try:
@@ -644,12 +664,14 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Respond with success
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job started successfully!'}).encode('utf-8'))
             except Exception as e:
                 # Handle errors
                 self.send_response(500)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -679,6 +701,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         raise ValueError("No active job found for the given staffName and jobId.")
 
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job stopped successfully!'}).encode('utf-8'))
@@ -686,6 +709,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 print(f"Error in /stop-job: {e}")  # Log the error
                 self.send_response(500)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
@@ -709,12 +733,14 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Respond with success
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Staff added successfully!'}).encode('utf-8'))
             except Exception as e:
                 # Handle errors
                 self.send_response(400)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
@@ -776,6 +802,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Send success response
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job added successfully!'}).encode('utf-8'))
@@ -784,6 +811,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Log the error for debugging
                 print(f"Error: {e}")
                 self.send_response(500)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
@@ -858,6 +886,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Send success response
                 self.send_response(200)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job added successfully!'}).encode('utf-8'))
@@ -865,6 +894,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 # Handle errors
                 self.send_response(500)
+                self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
@@ -877,10 +907,86 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             print("Handling /move-job request")  # Confirm route hit
             self.handle_move_job()
 
+
+        #EDIT clock in/out
+        elif self.path == '/edit-clock':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            # Admin check
+            user_role = self.headers.get('X-User-Role', 'user').lower()
+            if user_role != 'admin':
+                self.send_response(403)
+                self.set_cors_headers()  # ✅ Use helper function for consistent CORS
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Forbidden'}).encode())
+                return
+
+            record_id = data['recordId']
+            new_start = data['newStartTime']
+            new_stop = data['newStopTime']
+
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                cursor = conn.cursor()
+                cursor.execute('''
+                    UPDATE ClockInOut 
+                    SET StartTime = ?, StopTime = ?
+                    WHERE RecordID = ?
+                ''', (new_start, new_stop, record_id))
+                conn.commit()
+
+                self.send_response(200)
+                self.set_cors_headers()  # ✅ Use helper function for consistent CORS
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Record updated successfully'}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.set_cors_headers()  # ✅ Apply CORS headers for error response too
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode())
+            finally:
+                if conn:
+                    conn.close()
+
+        elif self.path == '/delete-clock':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            # Admin check
+            user_role = self.headers.get('X-User-Role', 'user').lower()
+            if user_role != 'admin':
+                self.send_response(403)
+                self.end_headers()
+                return
+
+            record_id = data['recordId']
+
+            try:
+                conn = sqlite3.connect(DB_NAME)
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM ClockInOut WHERE RecordID = ?', (record_id,))
+                conn.commit()
+                self.send_response(200)
+                self.set_cors_headers()
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Record deleted successfully'}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode())
+
        
         else:
             self.send_response()
             self.send_response(404)
+            self.set_cors_headers()
             self.end_headers()
 
 
