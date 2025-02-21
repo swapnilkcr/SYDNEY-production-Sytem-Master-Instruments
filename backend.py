@@ -214,11 +214,11 @@ def get_job_details(job_id):
 
         # Return a dictionary with fetched values or "Unknown" if not found
         return {
-            "customerName": result[0] if result and result[0] else "Unknown",
-            "drawingNumber": result[1] if result and result[1] else "Unknown",
-            "cellNo": result[2] if result and result[2] else "Unknown",
-            "quantity": result[3] if result and result[3] else "Unknown",
-            "requiredDate": result[4] if result and result[4] else "Unknown"
+            "customerName": result[0] if result and result[0] else " No data",
+            "drawingNumber": result[1] if result and result[1] else " ",
+            "cellNo": result[2] if result and result[2] else " ",
+            "quantity": result[3] if result and result[3] else " ",
+            "requiredDate": result[4] if result and result[4] else " "
         }
     except Exception as e:
         print(f"Error fetching job details from the database: {e}")
@@ -425,10 +425,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'startTime': row[3] or 'NA',
                         'stopTime': row[4] if row[4] else "In Progress",
                         'laborCost': row[5] if row[5] is not None else "N/A",
-                        'customerName': row[6] or "Unknown",
-                        'drawingNumber': row[7] or "Unknown",
-                        'cellNo': row[8] or "Unknown",
-                        'quantity': row[9] or "Unknown",
+                        'customerName': row[6] or " ",
+                        'drawingNumber': row[7] or " ",
+                        'cellNo': row[8] or " ",
+                        'quantity': row[9] or " ",
                         'requDate': row[10],  # Date field handled as string
                         'estimatedTime': float(row[11]) if row[11] else 0.0,
                         'totalHoursWorked': float(row[12]) if row[12] else 0.0,
@@ -587,6 +587,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         elif self.path == "/get-config":
              # Serve the BASE_URL to the frontend
             self.send_response(200)
+            self.set_cors_headers()
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             response = {'base_url': BASE_URL}
@@ -930,11 +931,26 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             try:
                 conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
-                cursor.execute('''
-                    UPDATE ClockInOut 
-                    SET StartTime = ?, StopTime = ?
-                    WHERE RecordID = ?
-                ''', (new_start, new_stop, record_id))
+
+                # Check if the job is in progress (StopTime is NULL)
+                cursor.execute("SELECT StopTime FROM ClockInOut WHERE RecordID = ?", (record_id,))
+                stop_time = cursor.fetchone()
+
+                if stop_time and stop_time[0] is None:
+                    # The job is still running, only update StartTime
+                    cursor.execute("""
+                        UPDATE ClockInOut
+                        SET StartTime = ?
+                        WHERE RecordID = ? AND StopTime IS NULL
+                    """, (new_start, record_id))
+                else:
+                    # If job is already stopped, allow full edit
+                    cursor.execute("""
+                        UPDATE ClockInOut
+                        SET StartTime = ?, StopTime = ?
+                        WHERE RecordID = ?
+                    """, (new_start, new_stop, record_id))
+
                 conn.commit()
 
                 self.send_response(200)
@@ -1082,11 +1098,13 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         except sqlite3.Error as db_error:
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Database error: ' + str(db_error)}).encode('utf-8'))
 
         except Exception as e:
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Unexpected error: ' + str(e)}).encode('utf-8'))
 
@@ -1294,6 +1312,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
             if not job_id:
                 self.send_response(400)
+                self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job ID is required.'}).encode('utf-8'))
                 return
@@ -1340,6 +1359,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 commit_with_retry(conn)
 
             self.send_response(200)
+            self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Job moved successfully!'}).encode('utf-8'))
@@ -1347,11 +1367,13 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         except sqlite3.OperationalError as e:
             print(f"Database error: {e}")
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Database is busy. Please try again.'}).encode('utf-8'))
         except Exception as e:
             print(f"Unexpected error: {e}")
             self.send_response(500)
+            self.set_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Server error'}).encode('utf-8'))
     

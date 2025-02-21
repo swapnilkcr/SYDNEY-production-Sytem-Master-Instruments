@@ -265,72 +265,11 @@ fetch(`${backendBaseUrl}/get-config`)
   });
    
 
-
-  // View Running Jobs Logic (view running jobs button)
-  if (!viewRunningJobsBtn) {
-    console.error('View Running Jobs button element not found!');
-  }
   viewRunningJobsBtn.addEventListener('click', (event) => {
-    event.preventDefault(); // Prevent default behavior
-    if (!BASE_URL) {
-      console.error('BASE_URL is not set!');
-      return;
-    }
-    console.log('View Running Jobs button clicked');
-    messageDiv.textContent = 'Loading running jobs...';  // Show loading message
-    tableBody.innerHTML = '';  // Clear any existing rows
-    recordsTable.style.display = 'none';  // Hide the table initially
-    viewRunningJobsBtn.disabled = true;  // Disable the button during the request
-
-    fetch(`${BASE_URL}/view-running-jobs`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to fetch running jobs.');
-        return response.json();
-      })
-      .then(data => {
-        console.log("Running Jobs Data:", data);
-        if (data.runningJobs && data.runningJobs.length > 0) {
-          recordsTable.style.display = 'block';  // Show the table
-          data.runningJobs.forEach(job => {
-            const row = document.createElement('tr');
-
-            // Format the start time (separate date and time)
-            const formattedDate = new Date(job.startTime).toLocaleDateString('en-GB', {
-              year: 'numeric',
-              month: 'long',
-              day: '2-digit',
-            });
-
-            const formattedTime = new Date(job.startTime).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false,
-            });
-
-            row.innerHTML = `
-              <td>${job.staffName}</td>
-              <td>${job.jobId}</td>
-              <td>${formattedDate} ${formattedTime}</td>
-            `;
-            tableBody.appendChild(row);  // Append row to the table body
-          });
-          messageDiv.textContent = '';  // Clear the loading message
-        } else {
-          messageDiv.textContent = 'No running jobs found.';
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching running jobs:', error);
-        messageDiv.textContent = 'Error fetching running jobs: ' + error.message;
-      })
-      .finally(() => {
-        viewRunningJobsBtn.disabled = false;  // Re-enable the button after the request is done
-      });
-});
+    event.preventDefault();
+    fetchRunningJobs();
+  });
+  
 
   viewBtn.addEventListener('click', (event) => {
     console.log('View button clicked'); // Debugging log
@@ -373,15 +312,17 @@ fetch(`${backendBaseUrl}/get-config`)
               hour12: false, // Use 24-hour time format
             });
 
-            const formattedStopTime = new Date(record.stopTime).toLocaleString('en-GB', {
-              year: 'numeric',
-              month: 'long',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false, // Use 24-hour time format
-            });
+            const formattedStopTime = !record.stopTime || record.stopTime === "In Progress" || record.stopTime === "null"
+              ? 'In Progress'
+              : new Date(record.stopTime).toLocaleString('en-GB', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false,
+                });
 
             // Create table row
             const row = document.createElement('tr');
@@ -449,7 +390,7 @@ fetch(`${backendBaseUrl}/get-config`)
       });
   });
 
-  function fetchRunningJobs() {
+  /*function fetchRunningJobs() {
     console.log("Fetching running jobs..."); // Debugging Log
     fetch(`${BASE_URL}/view-running-jobs`, {
       method: 'GET',
@@ -482,7 +423,7 @@ fetch(`${backendBaseUrl}/get-config`)
       .catch(error => {
         console.error('Error fetching running jobs:', error);
       });
-  }  
+  }  */
 
   
   
@@ -490,7 +431,76 @@ fetch(`${backendBaseUrl}/get-config`)
 });
 
 
+function fetchRunningJobs() {
+  if (!BASE_URL) {
+    console.error('BASE_URL is not set!');
+    return;
+  }
 
+  console.log('Fetching running jobs...');
+  const messageDiv = document.getElementById('message');
+  const tableBody = document.querySelector('#records-table tbody');
+  const recordsTable = document.getElementById('records-table');
+  const viewRunningJobsBtn = document.getElementById('view-running-jobs-btn');
+
+  if (!messageDiv || !tableBody || !recordsTable || !viewRunningJobsBtn) {
+    console.error('❌ Required elements not found!');
+    return;
+  }
+
+  messageDiv.textContent = 'Loading running jobs...';
+  tableBody.innerHTML = '';  // Clear previous entries
+  recordsTable.style.display = 'none';  
+  viewRunningJobsBtn.disabled = true;  
+
+  fetch(`${BASE_URL}/view-running-jobs`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to fetch running jobs.');
+      return response.json();
+    })
+    .then(data => {
+      console.log("Running Jobs Data:", data);
+      if (data.runningJobs && data.runningJobs.length > 0) {
+        recordsTable.style.display = 'block';  
+        data.runningJobs.forEach(job => {
+          const row = document.createElement('tr');
+
+          const formattedDate = new Date(job.startTime).toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'long',
+            day: '2-digit',
+          });
+
+          const formattedTime = new Date(job.startTime).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          });
+
+          row.innerHTML = `
+            <td>${job.staffName}</td>
+            <td>${job.jobId}</td>
+            <td>${formattedDate} ${formattedTime}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+        messageDiv.textContent = '';  
+      } else {
+        messageDiv.textContent = 'No running jobs found.';
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching running jobs:', error);
+      messageDiv.textContent = 'Error fetching running jobs: ' + error.message;
+    })
+    .finally(() => {
+      viewRunningJobsBtn.disabled = false;
+    });
+}
 
   let fetchJobsCalled = false;
   let cachedJobs = null; // Store fetched jobs
@@ -960,6 +970,7 @@ function searchByPN() {
 function editTime(recordId, currentStart, currentStop) {
   const newStart = prompt('Enter new start time (YYYY-MM-DD HH:MM:SS):', currentStart);
   const newStop = prompt('Enter new stop time (YYYY-MM-DD HH:MM:SS):', currentStop);
+  const messageDiv = document.getElementById('message');
   
   if (newStart && newStop) {
       fetch(`${BASE_URL}/edit-clock`, {
@@ -974,17 +985,18 @@ function editTime(recordId, currentStart, currentStop) {
               newStopTime: newStop
           })
       })
-      .then(response => {
-        if (!response.ok) return response.json().then(err => Promise.reject(err));
-        return response.json();
-    })
-    .then(data => {
-        alert(data.message);
-        document.getElementById('view-btn').click();
-    })
-    .catch(error => {
-        alert(`Error: ${error.error || error.message}`);
-    });
+      .then(response => response.json())
+  .then(result => {
+    console.log('Edit response:', result);
+    messageDiv.textContent = result.message || 'Record updated successfully!';
+
+    // Refresh running jobs if the job was still in progress
+    fetchRunningJobs();
+  })
+  .catch(error => {
+    console.error('Error editing job:', error);
+    messageDiv.textContent = `Error editing job: ${error.message}`;
+  });
 }
 }
 
