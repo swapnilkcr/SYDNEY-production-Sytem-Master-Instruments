@@ -63,6 +63,7 @@ fetch(`${backendBaseUrl}/get-config`)
     event.preventDefault();
     const username = localStorage.getItem('username') || 'Unknown User';
     const userRole = localStorage.getItem('userRole') || 'Unknown Role';
+    
   
     // Display the logged-in user info
     const userInfoDiv = document.getElementById('user-info');
@@ -77,7 +78,9 @@ fetch(`${backendBaseUrl}/get-config`)
     }
   
     console.log(`Logged in as: ${username} (Role: ${userRole})`);
-  
+    document.querySelector('.filter-container').style.display = 'none';
+    document.getElementById('records-table').style.display = 'none';
+    
   
   /*window.addEventListener('popstate', (event) => {
     event.preventDefault();
@@ -271,10 +274,13 @@ fetch(`${backendBaseUrl}/get-config`)
   });
   
 
+  // Add these filter functions before the viewBtn event listener
+
   viewBtn.addEventListener('click', (event) => {
     console.log('View button clicked'); // Debugging log
     event.preventDefault(); // Prevent default behavior
     document.querySelector('.filter-container').style.display = 'block';
+    document.getElementById('records-table').style.display = 'table';
 
     const tableBody = document.querySelector('#records-table tbody');
     const messageDiv = document.getElementById('message');
@@ -298,7 +304,9 @@ fetch(`${backendBaseUrl}/get-config`)
           recordsTable.style.display = 'block';  // Show the table
           data.records.forEach(record => {
             const totalHoursWorked = parseFloat(record.totalHoursWorked) || 0;
-            const estimatedTime = parseFloat(record.estimatedTime) || 0;
+            const estimatedTime = record.estimatedTime !== undefined ? parseFloat(record.estimatedTime).toFixed(2) : '0.00';
+            console.log(`DEBUG: Job ${record.jobId} Estimated Time:`, record.estimatedTime);
+
             const remainingTime = parseFloat(record.remainingTime) !== undefined ? parseFloat(record.remainingTime).toFixed(2) : '0.00';
 
             // Format the start time and stop time
@@ -340,8 +348,8 @@ fetch(`${backendBaseUrl}/get-config`)
               <td>${formattedStartTime}</td>
               <td>${formattedStopTime}</td>
               <td>${totalHoursWorked} hrs</td>
-              <td>${estimatedTime} hrs</td>
-              <td>${remainingTime} hrs</td>
+              <td>${parseFloat(record.estimatedTime).toFixed(2)} hrs</td>  <!-- ✅ Corrected display -->
+              <td>${parseFloat(record.remainingTime).toFixed(2)} hrs</td>
               <td>${laborCost}</td>
               ${localStorage.getItem('userRole') === 'admin' ? `
                 <button class="row-btn1"onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
@@ -355,6 +363,7 @@ fetch(`${backendBaseUrl}/get-config`)
         } else {
           messageDiv.textContent = 'No records found.';
         }
+        updateFilterPlaceholder();  // Update the filter placeholder text
       })
       .catch(error => {
         console.error('Error fetching records:', error);
@@ -426,7 +435,7 @@ fetch(`${backendBaseUrl}/get-config`)
   }  */
 
   
-  
+      updateFilterPlaceholder()
   
 });
 
@@ -954,15 +963,15 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchFinishedJobs();
 })
 
-function searchByPN() {
-    const input = document.getElementById('pn-search').value.toLowerCase();
+function searchByCustName() {
+    const input = document.getElementById('custName').value.toLowerCase();
     const table = document.querySelector('.finished-jobs-table');
     if (!table) return;
 
     const rows = table.tBodies[0].rows;
     for (const row of rows) {
-        const pnValue = row.cells[1].textContent.toLowerCase(); // Adjust index if PN is in a different column
-        row.style.display = pnValue.includes(input) ? '' : 'none';
+        const custValue = row.cells[5].textContent.toLowerCase(); // Adjust index if PN is in a different column
+        row.style.display = custValue.includes(input) ? '' : 'none';
     }
 }
 
@@ -1016,6 +1025,57 @@ function deleteTime(recordId) {
           document.getElementById('view-btn').click(); // Refresh table
       });
   }
+}
+
+function loadJobWorkDetails() {
+  const jobId = document.getElementById("jobIdInput").value;
+  fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
+              return;
+          }
+
+          let totalEstimated = data.estimatedTime;
+          let remaining = data.remainingTime;
+          let totalWorked = data.users.reduce((sum, user) => sum + user.hours, 0);
+
+          // HTML structure for progress bar
+          let progressHtml = `
+              <div class="progress-card">
+                  <div class="progress-header">Job Progress - ${data.jobId}</div>
+                  <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
+                  <div class="stacked-progress-bar">
+          `;
+
+          let userLabelsHtml = `<div class="user-labels"><strong>Worked Hours:</strong><br>`;
+
+          // Generate user progress bars & labels
+          data.users.forEach(user => {
+              let widthPercent = (user.hours / totalEstimated) * 100;
+              let userColor = getRandomColor();
+              
+              progressHtml += `<div class="progress" style="width: ${widthPercent}%; background: ${userColor};">${user.hours}h</div>`;
+              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: ${userColor};"></span>${user.name}: ${user.hours} hrs</div>`;
+          });
+
+          // Add remaining time
+          if (remaining > 0) {
+              let remainingWidth = (remaining / totalEstimated) * 100;
+              progressHtml += `<div class="progress" style="width: ${remainingWidth}%; background: gray;">${remaining}h</div>`;
+              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: gray;"></span>Remaining: ${remaining} hrs</div>`;
+          }
+
+          progressHtml += `</div>${userLabelsHtml}</div></div>`;
+          document.getElementById("progressContainer").innerHTML = progressHtml;
+      });
+}
+
+// Function to generate distinct colors for users
+function getRandomColor() {
+  const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#FFC300"];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
 

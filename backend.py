@@ -153,11 +153,12 @@ def load_staff_from_csv(file_path):
 def calculate_estimated_time(job_id):
     """Calculate the estimated time for a job based on AV and QTY columns from the database."""
     try:
-        #Connect to the database
+        print(f"DEBUG: Called calculate_estimated_time() with job_id={job_id}")  # ✅ Ensure function is called
+
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
 
-        # Query to fetch AV and QTY for the given job_id
+        # Fetch AV and QTY for the given job_id
         cursor.execute('SELECT AV, QTY FROM PN_DATA WHERE PN = ?', (job_id,))
         result = cursor.fetchone()
         conn.close()
@@ -165,12 +166,18 @@ def calculate_estimated_time(job_id):
         if result:
             av = float(result[0]) if result[0] is not None else 0.0
             qty = float(result[1]) if result[1] is not None else 0.0
-            return av * qty  # Estimated time calculation
+            estimated_time = round(av * qty, 2)
+
+            # ✅ Print debug info
+            print(f"DEBUG: JobID={job_id}, AV={av}, QTY={qty}, Estimated Time={estimated_time}")
+
+            return estimated_time
         else:
-            return 0.0  # Return 0 if no matching job_id is found
+            print(f"DEBUG: No matching record found for JobID={job_id}")
+            return 0.0  # Ensure function always returns a value
 
     except Exception as e:
-        print(f"Error fetching estimated time from database: {e}")
+        print(f"Error fetching estimated time: {e}")
         return 0.0
 
        
@@ -247,6 +254,40 @@ def get_av_by_stock_code(stock_code):
     except Exception as e:
         print(f"Error fetching AV from STOCKCODE: {e}")
         return None
+
+def get_job_work_details(job_id):
+    """Fetch total hours worked per user for a given job."""
+    conn = sqlite3.connect('clock_in_management.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT StaffName, 
+               SUM(
+                   (strftime('%s', COALESCE(StopTime, 'now')) - strftime('%s', StartTime)) / 3600.0
+               ) AS TotalHoursWorked
+        FROM ClockInOut 
+        WHERE JobID = ?
+        GROUP BY StaffName
+    ''', (job_id,))
+
+    results = cursor.fetchall()
+    conn.close()
+
+    # Convert to JSON format
+    users = [{'name': row[0], 'hours': round(row[1], 2)} for row in results]
+    
+    # Get estimated time
+    estimated_time = calculate_estimated_time(job_id)
+    total_worked = sum([user['hours'] for user in users])
+    remaining_time = max(estimated_time - total_worked, 0)  # Prevent negative values
+
+    return {
+        'jobId': job_id,
+        'estimatedTime': estimated_time,
+        'users': users,
+        'remainingTime': remaining_time
+    }
+
 
 
     
@@ -378,50 +419,50 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 conn = sqlite3.connect('clock_in_management.db')
                 cursor = conn.cursor()
 
-                # Optimized SQL query (from previous steps)
                 cursor.execute('''
-                   SELECT 
-                    c.RecordID, 
-                    c.StaffName, 
-                    c.JobID, 
-                    c.StartTime, 
-                    c.StopTime, 
-                    c.LaborCost, 
-                    j.CUST AS CustomerName, 
-                    j."DRAW NO" AS DrawingNumber, 
-                    j."NO/CELL" AS CellNo, 
-                    j.QTY AS Quantity, 
-                    j."REQU-DATE" AS RequestDate,
-
-                    -- Compute Estimated Time from AV * QTY
-                    COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
-
-                    -- Compute Total Hours Worked PER ENTRY
-                    ROUND(COALESCE(
-                        (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
-                    ),2) AS TotalHoursWorked 
-
-                FROM ClockInOut c
-                LEFT JOIN PN_DATA j ON c.JobID = j.PN
-                LEFT JOIN MergedData p ON j.PN = p.StockCode
-
-                ORDER BY c.StartTime;
-
-
+                    SELECT 
+                        c.RecordID, 
+                        c.StaffName, 
+                        c.JobID, 
+                        c.StartTime, 
+                        c.StopTime, 
+                        c.LaborCost, 
+                        j.CUST AS CustomerName, 
+                        j."DRAW NO" AS DrawingNumber, 
+                        j."NO/CELL" AS CellNo, 
+                        j.QTY AS Quantity, 
+                        j."REQU-DATE" AS RequestDate,
+                        COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
+                        ROUND(COALESCE(
+                            (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
+                        ),2) AS TotalHoursWorked 
+                    FROM ClockInOut c
+                    LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                    LEFT JOIN MergedData p ON j.PN = p.StockCode
+                    ORDER BY c.StartTime DESC;
                 ''')
-
                 rows = cursor.fetchall()
                 conn.close()
-                
-                for row in rows:
-                    print("Row data:", row) 
 
-                # Process data
-                records = [
-                    {
+                # Collect unique job IDs and precompute totals
+                job_ids = list(set(row[2] for row in rows))
+                job_info = {}
+                for job_id in job_ids:
+                    estimated_time = calculate_estimated_time(job_id)
+                    total_hours = get_total_hours_worked(job_id)
+                    job_info[job_id] = {
+                        'estimated': estimated_time,
+                        'total_hours': total_hours
+                    }
+
+                records = []
+                for row in rows:
+                    job_id = row[2]
+                    info = job_info[job_id]
+                    record = {
                         'recordId': row[0],
                         'staffName': row[1],
-                        'jobId': row[2],
+                        'jobId': job_id,
                         'startTime': row[3] or 'NA',
                         'stopTime': row[4] if row[4] else "In Progress",
                         'laborCost': row[5] if row[5] is not None else "N/A",
@@ -429,12 +470,17 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'drawingNumber': row[7] or " ",
                         'cellNo': row[8] or " ",
                         'quantity': row[9] or " ",
-                        'requDate': row[10],  # Date field handled as string
-                        'estimatedTime': float(row[11]) if row[11] else 0.0,
+                        'requDate': row[10],
+                        'estimatedTime': info['estimated'],
                         'totalHoursWorked': float(row[12]) if row[12] else 0.0,
-                        'remainingTime': round(float(row[11]) - float(row[12]), 2)
-                    } for row in rows
-                ]
+                        'remainingTime': round(info['estimated'] - info['total_hours'], 2)
+                    }
+                    records.append(record)
+
+
+                    
+                    
+                
 
 
                 # Convert JSON to compressed Gzip format
@@ -582,6 +628,26 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+        elif self.path.startswith("/get-job-work-details"):
+            query_string = self.path.split('?')[-1]
+            query_params = urllib.parse.parse_qs(query_string)
+            job_id = query_params.get('jobId', [None])[0]
+
+            if not job_id:
+                self.send_response(400)
+                self.set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Job ID is required'}).encode('utf-8'))
+                return
+
+            # Get work details for job
+            job_details = get_job_work_details(job_id)
+            self.send_response(200)
+            self.set_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps(job_details).encode('utf-8'))
+
 
 
         elif self.path == "/get-config":
@@ -1067,11 +1133,11 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Calculate Estimated Time
             estimated_time = calculate_estimated_time(job_id)
+            
+
 
             # Calculate Total Hours Worked
             total_hours_worked = get_total_hours_worked(job_id)
-            print(f"DEBUG: JobID: {job_id}, EstimatedTime: {estimated_time}, TotalHoursWorked: {total_hours_worked}")
-
             # Insert or update the total labor cost in JobTable
             cursor.execute('''
             INSERT INTO JobTable (JobID, TotalLaborCost,EstimatedTime,TotalHoursWorked)
@@ -1394,6 +1460,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             print(f"Error reading Excel file: {str(e)}")
             return None
 
+    
 
 
 
