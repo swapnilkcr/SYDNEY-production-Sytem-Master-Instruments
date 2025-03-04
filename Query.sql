@@ -238,3 +238,30 @@ VALUES ('SWAPNIL', '328741', '2025-02-25 09:00:00', 'active');
 
 
 
+
+EXPLAIN QUERY PLAN
+SELECT COUNT(*) FROM ClockInOut;
+Select * from MergedData;
+LEFT JOIN MergedData p ON j.PN = p.StockCode
+
+
+CREATE INDEX idx_clockinout_job ON ClockInOut (JobID);
+CREATE INDEX idx_clockinout_staff ON ClockInOut (StaffName);
+CREATE INDEX idx_pndata_pn ON PN_DATA (PN);
+CREATE INDEX idx_mergeddata_stock ON MergedData (StockCode);
+
+
+CREATE INDEX idx_clockinout_jobid ON ClockInOut(JobID);
+CREATE INDEX idx_pndata_pn ON PN_DATA(PN);
+
+
+
+
+
+
+
+
+
+
+
+

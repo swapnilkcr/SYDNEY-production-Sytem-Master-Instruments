@@ -414,55 +414,60 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
 
-        elif self.path == '/view-times':
+        elif self.path.startswith('/view-times'):
             try:
+                # Parse query parameters
+                query_string = self.path.split('?')[-1]
+                query_params = urllib.parse.parse_qs(query_string)
+                page = int(query_params.get('page', [1])[0])
+                page_size = int(query_params.get('page_size', [10])[0])
+
+                offset = (page - 1) * page_size
+
                 conn = sqlite3.connect('clock_in_management.db')
                 cursor = conn.cursor()
 
-                cursor.execute('''
-                    SELECT 
-                        c.RecordID, 
-                        c.StaffName, 
-                        c.JobID, 
-                        c.StartTime, 
-                        c.StopTime, 
-                        c.LaborCost, 
-                        j.CUST AS CustomerName, 
-                        j."DRAW NO" AS DrawingNumber, 
-                        j."NO/CELL" AS CellNo, 
-                        j.QTY AS Quantity, 
-                        j."REQU-DATE" AS RequestDate,
-                        COALESCE(p.AV * j.QTY, 0.0) AS EstimatedTime, 
-                        ROUND(COALESCE(
-                            (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
-                        ),2) AS TotalHoursWorked 
-                    FROM ClockInOut c
-                    LEFT JOIN PN_DATA j ON c.JobID = j.PN
-                    LEFT JOIN MergedData p ON j.PN = p.StockCode
-                    ORDER BY c.StartTime DESC;
-                ''')
+                # Get total record count
+                cursor.execute('SELECT COUNT(*) FROM ClockInOut')
+                total_records = cursor.fetchone()[0]
+                print(f"DEBUG: Total records in ClockInOut table: {total_records}")
+                print(f"DEBUG: Page size: {page_size}")
+
+
+
+                # backend.py - Updated SQL query in do_GET /view-times
+                cursor.execute(f'''
+                SELECT 
+                    c.RecordID, 
+                    c.StaffName, 
+                    c.JobID, 
+                    c.StartTime, 
+                    c.StopTime, 
+                    c.LaborCost, 
+                    j.CUST AS CustomerName, 
+                    j."DRAW NO" AS DrawingNumber, 
+                    j."NO/CELL" AS CellNo, 
+                    j.QTY AS Quantity, 
+                    j."REQU-DATE" AS RequestDate,
+                    COALESCE(j.AV * j.QTY, 0.0) AS EstimatedTime,  -- Calculate estimated time
+                    ROUND(COALESCE(
+                        (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
+                    ), 2) AS TotalHoursWorked  -- Calculate total hours worked
+                FROM ClockInOut c
+                LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                ORDER BY c.StartTime DESC
+                LIMIT ? OFFSET ?
+            ''', (page_size, offset))
                 rows = cursor.fetchall()
                 conn.close()
 
                 # Collect unique job IDs and precompute totals
-                job_ids = list(set(row[2] for row in rows))
-                job_info = {}
-                for job_id in job_ids:
-                    estimated_time = calculate_estimated_time(job_id)
-                    total_hours = get_total_hours_worked(job_id)
-                    job_info[job_id] = {
-                        'estimated': estimated_time,
-                        'total_hours': total_hours
-                    }
-
                 records = []
                 for row in rows:
-                    job_id = row[2]
-                    info = job_info[job_id]
                     record = {
                         'recordId': row[0],
                         'staffName': row[1],
-                        'jobId': job_id,
+                        'jobId': row[2],
                         'startTime': row[3] or 'NA',
                         'stopTime': row[4] if row[4] else "In Progress",
                         'laborCost': row[5] if row[5] is not None else "N/A",
@@ -471,20 +476,27 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'cellNo': row[8] or " ",
                         'quantity': row[9] or " ",
                         'requDate': row[10],
-                        'estimatedTime': info['estimated'],
-                        'totalHoursWorked': float(row[12]) if row[12] else 0.0,
-                        'remainingTime': round(info['estimated'] - info['total_hours'], 2)
+                        'estimatedTime': float(row[11]),  # Estimated time from SQL
+                        'totalHoursWorked': float(row[12]),  # Total hours worked from SQL
+                        'remainingTime': max(float(row[11]) - float(row[12]), 0.0)  # Remaining time
                     }
                     records.append(record)
 
+                total_pages = (total_records + page_size - 1) // page_size
+                print(f"DEBUG: Total pages calculated: {total_pages}")
+                print(f"DEBUG: Current page requested: {page}")
 
-                    
-                    
-                
+
+                response = {
+                    'records': records,
+                    'totalRecords': total_records,
+                    'totalPages': total_pages,
+                    'currentPage': page
+                }
 
 
                 # Convert JSON to compressed Gzip format
-                json_data = json.dumps({'records': records}).encode('utf-8')
+                json_data = json.dumps(response).encode('utf-8')
                 buffer = BytesIO()
                 with gzip.GzipFile(fileobj=buffer, mode='wb') as gzip_file:
                     gzip_file.write(json_data)

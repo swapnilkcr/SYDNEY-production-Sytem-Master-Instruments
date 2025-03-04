@@ -58,13 +58,20 @@ fetch(`${backendBaseUrl}/get-config`)
     fetchJobs();
   });
 
+  let currentPage = 1;
+  const pageSize = 10;
+  let lastSeenId = 0; // Stores the last record ID seen
+
+
 
   document.addEventListener('DOMContentLoaded', (event) => {
     event.preventDefault();
     const username = localStorage.getItem('username') || 'Unknown User';
     const userRole = localStorage.getItem('userRole') || 'Unknown Role';
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
     
-  
     // Display the logged-in user info
     const userInfoDiv = document.getElementById('user-info');
     userInfoDiv.textContent = `${username} (${userRole})`;
@@ -80,8 +87,10 @@ fetch(`${backendBaseUrl}/get-config`)
     console.log(`Logged in as: ${username} (Role: ${userRole})`);
     document.querySelector('.filter-container').style.display = 'none';
     document.getElementById('records-table').style.display = 'none';
+    document.getElementById('pagination-controls').style.display = 'none';
     
-  
+    let currentPage = 1;
+    const pageSize = 10;
   /*window.addEventListener('popstate', (event) => {
     event.preventDefault();
     // Redirect back to the layout page if the user presses the back button
@@ -276,11 +285,28 @@ fetch(`${backendBaseUrl}/get-config`)
 
   // Add these filter functions before the viewBtn event listener
 
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      fetchRecords();
+    }
+  });
+
+  nextPageBtn.addEventListener('click', () => {
+    currentPage++;
+    fetchRecords();
+  });
+
   viewBtn.addEventListener('click', (event) => {
     console.log('View button clicked'); // Debugging log
     event.preventDefault(); // Prevent default behavior
+    currentPage = 1; // Reset to the first page
+    fetchRecords(); // Fetch records from the server
     document.querySelector('.filter-container').style.display = 'block';
-    document.getElementById('records-table').style.display = 'table';
+    document.getElementById('pagination-controls').style.display = 'block';
+  });
+
+  function fetchRecords() {
 
     const tableBody = document.querySelector('#records-table tbody');
     const messageDiv = document.getElementById('message');
@@ -288,7 +314,7 @@ fetch(`${backendBaseUrl}/get-config`)
     recordsTable.style.display = 'none';  // Hide the table initially
     messageDiv.textContent = 'Loading clock-in/clock-out data...';  // Show loading message
 
-    fetch(`${BASE_URL}/view-times`, {
+    fetch(`${BASE_URL}/view-times?page=${currentPage}&page_size=${pageSize}`, {
       method: 'GET',
       headers: { 
         "Accept-Encoding": "gzip",  // Tell server we accept compressed data
@@ -360,6 +386,16 @@ fetch(`${backendBaseUrl}/get-config`)
             tableBody.appendChild(row);  // Append row to the table body
           });
           messageDiv.textContent = '';  // Clear the loading message
+
+          // Update pagination controls
+          if (!data.totalPages || !data.currentPage) {
+            console.error("⚠️ ERROR: Missing pagination data!", data);
+            messageDiv.textContent = "Pagination data is missing!";
+            return;
+          }
+          pageInfo.textContent = `Page ${data.currentPage} of ${data.totalPages}`;
+          prevPageBtn.disabled = data.currentPage === 1;
+          nextPageBtn.disabled = data.currentPage === data.totalPages;
         } else {
           messageDiv.textContent = 'No records found.';
         }
@@ -369,7 +405,8 @@ fetch(`${backendBaseUrl}/get-config`)
         console.error('Error fetching records:', error);
         messageDiv.textContent = `Error fetching records: ${error.message}`;
       });
-  });
+  }
+
 
   exportBtn.addEventListener('click', (event) => {
     event.preventDefault();
@@ -1027,6 +1064,58 @@ function deleteTime(recordId) {
   }
 }
 
+/*function loadJobWorkDetails() {
+  const jobId = document.getElementById("jobIdInput").value;
+  fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
+      .then(response => response.json())
+      .then(data => {
+          if (data.error) {
+              document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
+              return;
+          }
+
+          let totalEstimated = data.estimatedTime;
+          let remaining = data.remainingTime;
+          let totalWorked = data.users.reduce((sum, user) => sum + user.hours, 0);
+
+          // HTML structure for progress bar
+          let progressHtml = `
+              <div class="progress-card">
+                  <div class="progress-header">Job Progress - ${data.jobId}</div>
+                  <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
+                  <div class="stacked-progress-bar">
+          `;
+
+          let userLabelsHtml = `<div class="user-labels"><strong>Worked Hours:</strong><br>`;
+
+          // Generate user progress bars & labels
+          data.users.forEach(user => {
+              let widthPercent = (user.hours / totalEstimated) * 100;
+              let userColor = getRandomColor();
+              
+              progressHtml += `<div class="progress" style="width: ${widthPercent}%; background: ${userColor};">${user.hours}h</div>`;
+              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: ${userColor};"></span>${user.name}: ${user.hours} hrs</div>`;
+          });
+
+          // Add remaining time
+          if (remaining > 0) {
+              let remainingWidth = (remaining / totalEstimated) * 100;
+              progressHtml += `<div class="progress" style="width: ${remainingWidth}%; background: gray;">${remaining}h</div>`;
+              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: gray;"></span>Remaining: ${remaining} hrs</div>`;
+          }
+
+          progressHtml += `</div>${userLabelsHtml}</div></div>`;
+          document.getElementById("progressContainer").innerHTML = progressHtml;
+      });
+}
+
+// Function to generate distinct colors for users
+function getRandomColor() {
+  const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#FFC300"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}*/
+
+
 function loadJobWorkDetails() {
   const jobId = document.getElementById("jobIdInput").value;
   fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
@@ -1077,7 +1166,6 @@ function getRandomColor() {
   const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#FFC300"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 
 
 
