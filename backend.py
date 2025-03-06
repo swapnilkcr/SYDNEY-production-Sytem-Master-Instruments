@@ -76,37 +76,6 @@ DB_NAME = 'clock_in_management.db'
     except Exception as e:
         print(f"Error sending WebSocket update: {e}")'''
 
-def clock_in(staff_name, job_id):
-    """Handle clock-in logic."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO ClockInOut (StaffName, JobID, start_time, status) VALUES (?, ?, DATETIME('now'), 'active')", 
-                   (staff_name, job_id))
-    conn.commit()
-    conn.close()
-
-    # Use existing event loop
-    '''loop = asyncio.get_event_loop()
-    if loop.is_running():
-        loop.create_task(send_update("start", staff_name, job_id, "now"))
-    else:
-        asyncio.run(send_update("start", staff_name, job_id, "now"))'''
-
-def clock_out(staff_name, job_id):
-    """Handle clock-out logic."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("UPDATE ClockInOut SET stop_time = DATETIME('now'), status = 'completed' WHERE StaffName = ? AND JobID = ? AND status = 'active'", 
-                   (staff_name, job_id))
-    conn.commit()
-    conn.close()
-
-    # Use existing event loop
-    '''loop = asyncio.get_event_loop()
-    if loop.is_running():
-        loop.create_task(send_update("stop", staff_name, job_id, "now"))
-    else:
-        asyncio.run(send_update("stop", staff_name, job_id, "now"))'''
 
 
 
@@ -614,6 +583,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Send the Excel file as a response
                 self.send_response(200)
+                self.send_cors_headers()
                 self.send_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 #self.send_header('Cache-Control', 'no-store')
                 self.send_header('Content-Disposition', 'attachment; filename="clock_in_data.xlsx"')
