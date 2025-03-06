@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verify against known credentials
     const validRoles = ['admin', 'staff'];
     if (validRoles.includes(userRole) && credentials[userRole]?.username === username) {
-      window.location.href = `${BASE_URL}/layout.html`;
+      window.location.href = `layout.html`;
     } else {
       // Clear invalid credentials
       localStorage.clear();
