@@ -113,7 +113,7 @@ fetch(`${backendBaseUrl}/get-config`)
         fetchRecords();
     });
     updateFilterPlaceholder();
-    
+    document.getElementById('clear-filter1').addEventListener('click', clearFilter1);
     
   
   
@@ -307,6 +307,7 @@ fetch(`${backendBaseUrl}/get-config`)
   viewRunningJobsBtn.addEventListener('click', (event) => {
     event.preventDefault();
     fetchRunningJobs();
+    document.getElementById('pagination-controls').style.display = 'none';
   });
   
 
@@ -1188,7 +1189,10 @@ function getRandomColor() {
 
 
 
-
+function clearFilter1() {
+  document.getElementById('jobIdInput').value = '';
+  document.getElementById('progressContainer').innerHTML='';
+}
 
 
 

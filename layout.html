@@ -321,7 +321,10 @@ function searchAV() {
         <h3>Menu</h3>
         <div class="container-2">
             <input type="text" id="jobIdInput" placeholder="Enter Job ID">
-            <button onclick="loadJobWorkDetails()">View Job Progress</button>
+            <div class="card-btn">
+              <button onclick="loadJobWorkDetails()">View Job Progress</button>
+              <button class="clear-filter1" id="clear-filter1">Clear</button>
+            </div>
             <div id="progressContainer"></div>
         </div>
         <button onclick="toggleMenu()">Close</button>
