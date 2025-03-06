@@ -5,21 +5,169 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finished Jobs</title>
   <link rel="stylesheet" href="Style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      text-align: center;
+    }
+
+    th {
+    color: black !important;
+  }
+
+
+
+    .filter-container1 {
+      margin: 20px 0;
+    }
+
+    #custName {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #555;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .pagination {
+      margin: 20px 0;
+    }
+
+    .pagination button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .pagination button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1 class="h3">Finished Jobs</h1>
-    <a href="layout.html">HOME</a>
+    <h1>Finished Jobs</h1>
+    <a href="layout.html" style="color: white; text-decoration: none;">🏠 HOME</a>
   </header>
+
   <div class="filter-container1">
     <input type="text" id="custName" placeholder="Search by Customer Name..." onkeyup="searchByCustName()">
-</div>
-<div id="pagination" style="text-align: center; margin-top: 10px;"></div>
-
-  <div id="finished-jobs-container" class="table-container">
-    <!-- Data will be populated here -->
   </div>
-  <script src="clock.js"></script>
-</body>
 
+  <div id="finished-jobs-container">
+    <table id="jobsTable">
+      <thead>
+        <tr>
+          <th>Job ID</th>
+          <th>Customer Name</th>
+          <th>Completion Date</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <button id="prevPage" onclick="prevPage()" disabled>⬅️ Previous</button>
+    <span id="pageNumber">Page 1</span>
+    <button id="nextPage" onclick="nextFinishedPage()">Next ➡️</button>
+  </div>
+
+  <script src="clock.js"></script>
+  <script>
+    let currentPage = 1;
+    const pageSize = 5;
+    let jobsData = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fetchFinishedJobs();
+    });
+
+    function fetchFinishedJobs() {
+      fetch("http://127.0.0.1:3001/get-finished-jobs") // Update with your backend URL
+        .then(response => response.json())
+        .then(data => {
+          jobsData = data.jobs || [];
+          renderTable();
+        })
+        .catch(error => console.error("Error fetching jobs:", error));
+    }
+
+    function renderTable() {
+      const tableBody = document.querySelector("#jobsTable tbody");
+      tableBody.innerHTML = "";
+
+      let start = (currentPage1 - 1) * pageSize;
+      let end = start + pageSize;
+      let paginatedJobs = jobsData.slice(start, end);
+
+      paginatedJobs.forEach(job => {
+        const row = `<tr>
+          <td>${job.jobId}</td>
+          <td>${job.customerName}</td>
+          <td>${job.completionDate}</td>
+          <td><button onclick="viewDetails('${job.jobId}')">🔍 View</button></td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+
+      document.getElementById("pageNumber").textContent = `Page ${currentPage1}`;
+      document.getElementById("prevPage").disabled = currentPage1 === 1;
+      document.getElementById("nextPage").disabled = end >= jobsData.length;
+    }
+
+    function nextFinishedPage() {
+      if (currentPage1 * pageSize < jobsData.length) {
+        currentPage1++;
+        renderTable();
+      }
+    }
+
+    function prevPage() {
+      if (currentPage1 > 1) {
+        currentPage1--;
+        renderTable();
+      }
+    }
+
+    function viewDetails(jobId) {
+      alert("More details for Job ID: " + jobId);
+    }
+</script>
+
+</body>
 </html>

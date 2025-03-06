@@ -59,7 +59,6 @@ fetch(`${backendBaseUrl}/get-config`)
   });
 
   let currentPage = 1;
-  const pageSize = 10;
   let lastSeenId = 0; // Stores the last record ID seen
 
 
@@ -90,7 +89,34 @@ fetch(`${backendBaseUrl}/get-config`)
     document.getElementById('pagination-controls').style.display = 'none';
     
     let currentPage = 1;
-    const pageSize = 10;
+    const pageSize = 5;
+    let currentFilters = {
+        column: 'all',
+        value: ''
+    };
+    updateFilterPlaceholder();
+    document.getElementById('clear-filters').addEventListener('click', clearFilters);
+    document.getElementById('filter-input').addEventListener('keyup', debounce(filterTable, 300));
+    /*document.getElementById('filter-column').addEventListener('change', filterTable);*/
+    document.getElementById('filter-column').addEventListener('change', () => {
+      updateFilterPlaceholder();
+      filterTable();
+    });
+    document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            fetchRecords();
+        }
+    });
+    document.getElementById('next-page').addEventListener('click', () => {
+        currentPage++;
+        fetchRecords();
+    });
+    updateFilterPlaceholder();
+    
+    
+  
+  
   /*window.addEventListener('popstate', (event) => {
     event.preventDefault();
     // Redirect back to the layout page if the user presses the back button
@@ -114,6 +140,7 @@ fetch(`${backendBaseUrl}/get-config`)
   const tableBody = recordsTable.querySelector('tbody');  // Table body for records
   const messageDiv = document.getElementById('message');
   const finishBtn = document.getElementById('finish-btn');
+  
   
 
   
@@ -283,19 +310,6 @@ fetch(`${backendBaseUrl}/get-config`)
   });
   
 
-  // Add these filter functions before the viewBtn event listener
-
-  prevPageBtn.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      fetchRecords();
-    }
-  });
-
-  nextPageBtn.addEventListener('click', () => {
-    currentPage++;
-    fetchRecords();
-  });
 
   viewBtn.addEventListener('click', (event) => {
     console.log('View button clicked'); // Debugging log
@@ -306,106 +320,152 @@ fetch(`${backendBaseUrl}/get-config`)
     document.getElementById('pagination-controls').style.display = 'block';
   });
 
-  function fetchRecords() {
+   
 
+// Updated fetchRecords with server-side filtering
+function fetchRecords() {
+    const filterColumn = document.getElementById('filter-column').value;
+    const filterValue = document.getElementById('filter-input').value.toLowerCase();
+    
     const tableBody = document.querySelector('#records-table tbody');
     const messageDiv = document.getElementById('message');
-    tableBody.innerHTML = '';  // Clear any existing rows
-    recordsTable.style.display = 'none';  // Hide the table initially
-    messageDiv.textContent = 'Loading clock-in/clock-out data...';  // Show loading message
+    const recordsTable = document.getElementById('records-table');
+    
+    tableBody.innerHTML = '';
+    recordsTable.style.display = 'none';
+    messageDiv.textContent = 'Loading data...';
 
-    fetch(`${BASE_URL}/view-times?page=${currentPage}&page_size=${pageSize}`, {
-      method: 'GET',
-      headers: { 
-        "Accept-Encoding": "gzip",  // Tell server we accept compressed data
-        "Content-Type": "application/json" },
-    })
-      .then(response => {
-        console.log("Fetch response status:", response.status);
-        if (!response.ok) throw new Error('Failed to fetch records.');
-        return response.json();
-      })
-      .then(data => {
-        if (data.records && data.records.length > 0) {
-          recordsTable.style.display = 'block';  // Show the table
-          data.records.forEach(record => {
-            const totalHoursWorked = parseFloat(record.totalHoursWorked) || 0;
-            const estimatedTime = record.estimatedTime !== undefined ? parseFloat(record.estimatedTime).toFixed(2) : '0.00';
-            console.log(`DEBUG: Job ${record.jobId} Estimated Time:`, record.estimatedTime);
-
-            const remainingTime = parseFloat(record.remainingTime) !== undefined ? parseFloat(record.remainingTime).toFixed(2) : '0.00';
-
-            // Format the start time and stop time
-            const formattedStartTime = new Date(record.startTime).toLocaleString('en-GB', {
-              year: 'numeric',
-              month: 'long',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false, // Use 24-hour time format
-            });
-
-            const formattedStopTime = !record.stopTime || record.stopTime === "In Progress" || record.stopTime === "null"
-              ? 'In Progress'
-              : new Date(record.stopTime).toLocaleString('en-GB', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: false,
-                });
-
-            // Create table row
-            const row = document.createElement('tr');
-            const laborCost = (typeof record.laborCost === 'number' && !isNaN(record.laborCost))
-              ? `$${record.laborCost.toFixed(2)}`
-              : 'N/A';
-
-            row.innerHTML = `
-              <td>${record.staffName}</td>
-              <td>${record.jobId}</td>
-              <td>${record.drawingNumber}</td>
-              <td>${record.cellNo}</td>
-              <td>${record.quantity}</td>
-              <td>${record.customerName}</td>
-              <td>${formattedStartTime}</td>
-              <td>${formattedStopTime}</td>
-              <td>${totalHoursWorked} hrs</td>
-              <td>${parseFloat(record.estimatedTime).toFixed(2)} hrs</td>  <!-- ✅ Corrected display -->
-              <td>${parseFloat(record.remainingTime).toFixed(2)} hrs</td>
-              <td>${laborCost}</td>
-              ${localStorage.getItem('userRole') === 'admin' ? `
-                <button class="row-btn1"onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
-                <button class="row-btn2"onclick="deleteTime('${record.recordId}')">Delete</button>
-            ` : ''}
-               </td>
-            `;
-            tableBody.appendChild(row);  // Append row to the table body
-          });
-          messageDiv.textContent = '';  // Clear the loading message
-
-          // Update pagination controls
-          if (!data.totalPages || !data.currentPage) {
-            console.error("⚠️ ERROR: Missing pagination data!", data);
-            messageDiv.textContent = "Pagination data is missing!";
-            return;
-          }
-          pageInfo.textContent = `Page ${data.currentPage} of ${data.totalPages}`;
-          prevPageBtn.disabled = data.currentPage === 1;
-          nextPageBtn.disabled = data.currentPage === data.totalPages;
-        } else {
-          messageDiv.textContent = 'No records found.';
+    fetch(`${backendBaseUrl}/view-times?page=${currentPage}&page_size=${pageSize}` +
+        `&filter_column=${filterColumn}&filter_value=${encodeURIComponent(filterValue)}`, {
+        method: 'GET',
+        headers: { 
+            "Accept-Encoding": "gzip",
+            "Content-Type": "application/json"
         }
-        updateFilterPlaceholder();  // Update the filter placeholder text
-      })
-      .catch(error => {
-        console.error('Error fetching records:', error);
-        messageDiv.textContent = `Error fetching records: ${error.message}`;
-      });
-  }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch records');
+        return response.json();
+    })
+    .then(data => {
+      console.log(`Data received:`, data); // Debugging log
+
+        if (data.records && data.records.length > 0) {
+            recordsTable.style.display = 'table';
+            populateTable(data.records);
+            updatePagination(data);
+            messageDiv.textContent = '';
+        } else {
+            messageDiv.textContent = 'No records found';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.textContent = `Error: ${error.message}`;
+    });
+}
+
+
+
+
+
+// Helper function to populate table
+function populateTable(records) {
+    const tableBody = document.querySelector('#records-table tbody');
+    tableBody.innerHTML = '';
+    
+    records.forEach(record => {
+        const row = document.createElement('tr');
+        const laborCost = typeof record.laborCost === 'number' ? 
+            `$${record.laborCost.toFixed(2)}` : 'N/A';
+        
+        row.innerHTML = `
+            <td>${record.staffName}</td>
+            <td>${record.jobId}</td>
+            <td>${record.drawingNumber}</td>
+            <td>${record.cellNo}</td>
+            <td>${record.quantity}</td>
+            <td>${record.customerName}</td>
+            <td>${formatDateTime(record.startTime)}</td>
+            <td>${formatDateTime(record.stopTime)}</td>
+            <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
+            <td>${record.estimatedTime.toFixed(2)} hrs</td>
+            <td>${record.remainingTime.toFixed(2)} hrs</td>
+            <td>${laborCost}</td>
+            ${localStorage.getItem('userRole') === 'admin' ? `
+                <td>
+                    <button class="row-btn1" onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
+                    <button class="row-btn2" onclick="deleteTime('${record.recordId}')">Delete</button>
+                </td>
+            ` : '<td></td>'}
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Updated pagination controls
+function updatePagination(data) {
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+
+    pageInfo.textContent = `Page ${data.currentPage} of ${data.totalPages}`;
+    prevPageBtn.disabled = data.currentPage === 1;
+    nextPageBtn.disabled = data.currentPage === data.totalPages;
+}
+
+// Date formatting helper
+function formatDateTime(dateString) {
+    if (!dateString || dateString === 'In Progress') return dateString;
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).replace(/,/g, '');
+}
+
+
+// Updated clear filters
+function clearFilters() {
+  document.getElementById('filter-input').value = '';
+  document.getElementById('filter-column').value = 'all';
+  currentPage = 1;
+  updateFilterPlaceholder();
+  fetchRecords(); // Fetch without filters
+}
+
+function updateFilterPlaceholder() {
+  const columnSelect = document.getElementById('filter-column');
+  const filterInput = document.getElementById('filter-input');
+  const selectedText = columnSelect.options[columnSelect.selectedIndex].text;
+  filterInput.placeholder = `Filter by ${selectedText}...`;
+  filterInput.focus();
+}
+
+function filterTable() {
+  currentPage = 1; // Reset to first page when filtering
+  fetchRecords();
+}
+
+
+
+
+
+
+// Debounce function for better performance
+function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
 
 
   exportBtn.addEventListener('click', (event) => {
@@ -1118,47 +1178,57 @@ function getRandomColor() {
 
 function loadJobWorkDetails() {
   const jobId = document.getElementById("jobIdInput").value;
+
+  // Show loading spinner
+  document.getElementById("progressContainer").innerHTML = `
+    <div class="loading-spinner"></div>
+    <p>Loading job progress...</p>
+  `;
+
+  // Fetch job progress details
   fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
-      .then(response => response.json())
-      .then(data => {
-          if (data.error) {
-              document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
-              return;
-          }
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
+        return;
+      }
 
-          let totalEstimated = data.estimatedTime;
-          let remaining = data.remainingTime;
-          let totalWorked = data.users.reduce((sum, user) => sum + user.hours, 0);
+      let totalEstimated = data.estimatedTime;
+      let remaining = data.remainingTime;
+      let totalWorked = data.users.reduce((sum, user) => sum + user.hours, 0);
 
-          // HTML structure for progress bar
-          let progressHtml = `
-              <div class="progress-card">
-                  <div class="progress-header">Job Progress - ${data.jobId}</div>
-                  <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
-                  <div class="stacked-progress-bar">
-          `;
+      // HTML structure for progress bar
+      let progressHtml = `
+        <div class="progress-card">
+          <div class="progress-header">Job Progress - ${data.jobId}</div>
+          <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
+          <div class="stacked-progress-bar">
+      `;
 
-          let userLabelsHtml = `<div class="user-labels"><strong>Worked Hours:</strong><br>`;
+      let userLabelsHtml = `<div class="user-labels"><strong>Worked Hours:</strong><br>`;
 
-          // Generate user progress bars & labels
-          data.users.forEach(user => {
-              let widthPercent = (user.hours / totalEstimated) * 100;
-              let userColor = getRandomColor();
-              
-              progressHtml += `<div class="progress" style="width: ${widthPercent}%; background: ${userColor};">${user.hours}h</div>`;
-              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: ${userColor};"></span>${user.name}: ${user.hours} hrs</div>`;
-          });
-
-          // Add remaining time
-          if (remaining > 0) {
-              let remainingWidth = (remaining / totalEstimated) * 100;
-              progressHtml += `<div class="progress" style="width: ${remainingWidth}%; background: gray;">${remaining}h</div>`;
-              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: gray;"></span>Remaining: ${remaining} hrs</div>`;
-          }
-
-          progressHtml += `</div>${userLabelsHtml}</div></div>`;
-          document.getElementById("progressContainer").innerHTML = progressHtml;
+      // Generate user progress bars & labels
+      data.users.forEach(user => {
+        let widthPercent = (user.hours / totalEstimated) * 100;
+        let userColor = getRandomColor();
+        progressHtml += `<div class="progress" style="width: ${widthPercent}%; background: ${userColor};">${user.hours}h</div>`;
+        userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: ${userColor};"></span>${user.name}: ${user.hours} hrs</div>`;
       });
+
+      // Add remaining time
+      let remainingWidth = (remaining / totalEstimated) * 100;
+      progressHtml += `<div class="progress" style="width: ${remainingWidth}%; background: gray;">${remaining}h</div>`;
+      userLabelsHtml += `<div class="user-label" style="color:red;"><span class="user-box" style="background: green;"></span>Total hours Worked: ${totalWorked} hrs</div>`;
+      userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: gray;"></span>Remaining: ${remaining} hrs</div>`;
+
+      progressHtml += `</div>${userLabelsHtml}</div></div>`;
+      document.getElementById("progressContainer").innerHTML = progressHtml;
+    })
+    .catch(error => {
+      // Handle fetch errors
+      document.getElementById("progressContainer").innerHTML = `<p>Error loading job progress: ${error.message}</p>`;
+    });
 }
 
 // Function to generate distinct colors for users

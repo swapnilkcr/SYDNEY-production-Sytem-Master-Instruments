@@ -213,51 +213,9 @@ function searchAV() {
 
 
 
-  function filterTable() {
-  const input = document.getElementById('filter-input').value.toLowerCase();
-  const columnIndex = document.getElementById('filter-column').value;
-  const table = document.getElementById('records-table');
-  const rows = table.getElementsByTagName('tr');
-
-  for (let i = 1; i < rows.length; i++) {
-    const cells = rows[i].getElementsByTagName('td');
-    let match = false;
-
-    if (columnIndex === 'all') {
-      // Search all columns
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j].textContent.toLowerCase().includes(input)) {
-          match = true;
-          break;
-        }
-      }
-    } else {
-      // Search specific column
-      const cellIndex = parseInt(columnIndex);
-      if (cells[cellIndex] && cells[cellIndex].textContent.toLowerCase().includes(input)) {
-        match = true;
-      }
-    }
-
-    rows[i].style.display = match ? '' : 'none';
-  }
-}
-
-function updateFilterPlaceholder() {
-  const columnSelect = document.getElementById('filter-column');
-  const filterInput = document.getElementById('filter-input');
-  const selectedText = columnSelect.options[columnSelect.selectedIndex].text;
-  filterInput.placeholder = `Filter by ${selectedText}...`;
-  filterInput.focus();
-}
-
-function clearFilters() {
-  document.getElementById('filter-input').value = '';
-  document.getElementById('filter-column').value = 'all';
-  updateFilterPlaceholder();
-  filterTable();
-}
-
+  
+ 
+// Updated filter function
 
 </script>
 <body>
@@ -424,7 +382,7 @@ function clearFilters() {
       <!-- Filter Input -->
       <div class="filter-container">
         <div class="filter-controls">
-          <select id="filter-column" onchange="updateFilterPlaceholder()">
+          <select id="filter-column">
             <option value="all">All Columns</option>
             <option value="0">Staff Name</option>
             <option value="1">Job ID</option>
@@ -439,8 +397,8 @@ function clearFilters() {
             <option value="10">Remaining Time</option>
             <option value="11">Labor Cost</option>
           </select>
-          <input type="text" id="filter-input" placeholder="Type to filter..." onkeyup="filterTable()">
-          <button onclick="clearFilters()" class="clear-filters">Clear</button>
+          <input type="text" id="filter-input" placeholder="Type to filter...">
+          <button class="clear-filters" id="clear-filters">Clear</button>
         </div>
       </div>
 

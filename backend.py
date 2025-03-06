@@ -414,29 +414,27 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
 
-        elif self.path.startswith('/view-times'):
+        
+        elif self.path.startswith("/view-times"):
             try:
                 # Parse query parameters
-                query_string = self.path.split('?')[-1]
-                query_params = urllib.parse.parse_qs(query_string)
+                parsed_url = urlparse(self.path)
+                query_params = parse_qs(parsed_url.query)
+                
+                # Pagination parameters
                 page = int(query_params.get('page', [1])[0])
-                page_size = int(query_params.get('page_size', [10])[0])
-
+                page_size = int(query_params.get('page_size', [5])[0])
                 offset = (page - 1) * page_size
-
+                
+                # Filter parameters
+                filter_column = query_params.get('filter_column', ['all'])[0]
+                filter_value = query_params.get('filter_value', [''])[0].lower()
+                
                 conn = sqlite3.connect('clock_in_management.db')
                 cursor = conn.cursor()
 
-                # Get total record count
-                cursor.execute('SELECT COUNT(*) FROM ClockInOut')
-                total_records = cursor.fetchone()[0]
-                print(f"DEBUG: Total records in ClockInOut table: {total_records}")
-                print(f"DEBUG: Page size: {page_size}")
-
-
-
-                # backend.py - Updated SQL query in do_GET /view-times
-                cursor.execute(f'''
+                # Base query
+                base_query = '''
                 SELECT 
                     c.RecordID, 
                     c.StaffName, 
@@ -447,21 +445,61 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     j.CUST AS CustomerName, 
                     j."DRAW NO" AS DrawingNumber, 
                     j."NO/CELL" AS CellNo, 
-                    j.QTY AS Quantity, 
+                    j.QTY AS Quantity,
                     j."REQU-DATE" AS RequestDate,
-                    COALESCE(j.AV * j.QTY, 0.0) AS EstimatedTime,  -- Calculate estimated time
+                    COALESCE(j.AV * j.QTY, 0.0) AS EstimatedTime,
                     ROUND(COALESCE(
                         (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
-                    ), 2) AS TotalHoursWorked  -- Calculate total hours worked
+                    ), 2) AS TotalHoursWorked
                 FROM ClockInOut c
                 LEFT JOIN PN_DATA j ON c.JobID = j.PN
-                ORDER BY c.StartTime DESC
-                LIMIT ? OFFSET ?
-            ''', (page_size, offset))
+                '''
+
+                # Filter mapping
+                column_map = {
+                    '0': 'c.StaffName',
+                    '1': 'c.JobID',
+                    '2': 'j."DRAW NO"',
+                    '3': 'j."NO/CELL"',
+                    '4': 'j.QTY',
+                    '5': 'j.CUST',
+                    '6': 'c.StartTime',
+                    '7': 'c.StopTime',
+                    '8': 'TotalHoursWorked',
+                    '9': 'EstimatedTime',
+                    '10': '(EstimatedTime - TotalHoursWorked)',
+                    '11': 'c.LaborCost'
+                }
+
+                # Build WHERE clause
+                where_clauses = []
+                params = []
+                
+                if filter_value and filter_column != 'all':
+                    if filter_column in column_map:
+                        where_clauses.append(f"LOWER({column_map[filter_column]}) LIKE ?")
+                        params.append(f'%{filter_value}%')
+
+                where_stmt = ' WHERE ' + ' AND '.join(where_clauses) if where_clauses else ''
+
+                # Count total records
+                count_query = f"SELECT COUNT(*) FROM ({base_query}{where_stmt})"
+                cursor.execute(count_query, params)
+                total_records = cursor.fetchone()[0]
+
+                # Data query with pagination
+                data_query = f'''
+                    {base_query}
+                    {where_stmt}
+                    ORDER BY c.StartTime DESC
+                    LIMIT ? OFFSET ?
+                '''
+                
+                cursor.execute(data_query, params + [page_size, offset])
                 rows = cursor.fetchall()
                 conn.close()
 
-                # Collect unique job IDs and precompute totals
+                # Process records
                 records = []
                 for row in rows:
                     record = {
@@ -476,17 +514,16 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'cellNo': row[8] or " ",
                         'quantity': row[9] or " ",
                         'requDate': row[10],
-                        'estimatedTime': float(row[11]),  # Estimated time from SQL
-                        'totalHoursWorked': float(row[12]),  # Total hours worked from SQL
-                        'remainingTime': max(float(row[11]) - float(row[12]), 0.0)  # Remaining time
+                        'estimatedTime': float(row[11]),
+                        'totalHoursWorked': float(row[12]),
+                        'remainingTime': max(float(row[11]) - float(row[12]), 0.0)
                     }
                     records.append(record)
 
+                # Calculate pagination
                 total_pages = (total_records + page_size - 1) // page_size
-                print(f"DEBUG: Total pages calculated: {total_pages}")
-                print(f"DEBUG: Current page requested: {page}")
-
-
+                
+                # Prepare response
                 response = {
                     'records': records,
                     'totalRecords': total_records,
@@ -494,24 +531,19 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     'currentPage': page
                 }
 
-
-                # Convert JSON to compressed Gzip format
+                # Send compressed response
                 json_data = json.dumps(response).encode('utf-8')
                 buffer = BytesIO()
                 with gzip.GzipFile(fileobj=buffer, mode='wb') as gzip_file:
                     gzip_file.write(json_data)
-
-                compressed_data = buffer.getvalue()
-
-                # Send Gzip response
+                
                 self.send_response(200)
                 self.set_cors_headers()
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Content-Encoding', 'gzip')  # Tell browser response is compressed
-                #self.send_header('Cache-Control', 'no-store')
-                self.send_header('Content-Length', str(len(compressed_data)))  # Required for gzip
+                self.send_header('Content-Encoding', 'gzip')
+                self.send_header('Content-Length', str(len(buffer.getvalue())))
                 self.end_headers()
-                self.wfile.write(compressed_data)
+                self.wfile.write(buffer.getvalue())
 
             except Exception as e:
                 print(f"Error in /view-times: {str(e)}")
