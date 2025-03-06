@@ -1124,57 +1124,6 @@ function deleteTime(recordId) {
   }
 }
 
-/*function loadJobWorkDetails() {
-  const jobId = document.getElementById("jobIdInput").value;
-  fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
-      .then(response => response.json())
-      .then(data => {
-          if (data.error) {
-              document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
-              return;
-          }
-
-          let totalEstimated = data.estimatedTime;
-          let remaining = data.remainingTime;
-          let totalWorked = data.users.reduce((sum, user) => sum + user.hours, 0);
-
-          // HTML structure for progress bar
-          let progressHtml = `
-              <div class="progress-card">
-                  <div class="progress-header">Job Progress - ${data.jobId}</div>
-                  <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
-                  <div class="stacked-progress-bar">
-          `;
-
-          let userLabelsHtml = `<div class="user-labels"><strong>Worked Hours:</strong><br>`;
-
-          // Generate user progress bars & labels
-          data.users.forEach(user => {
-              let widthPercent = (user.hours / totalEstimated) * 100;
-              let userColor = getRandomColor();
-              
-              progressHtml += `<div class="progress" style="width: ${widthPercent}%; background: ${userColor};">${user.hours}h</div>`;
-              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: ${userColor};"></span>${user.name}: ${user.hours} hrs</div>`;
-          });
-
-          // Add remaining time
-          if (remaining > 0) {
-              let remainingWidth = (remaining / totalEstimated) * 100;
-              progressHtml += `<div class="progress" style="width: ${remainingWidth}%; background: gray;">${remaining}h</div>`;
-              userLabelsHtml += `<div class="user-label"><span class="user-box" style="background: gray;"></span>Remaining: ${remaining} hrs</div>`;
-          }
-
-          progressHtml += `</div>${userLabelsHtml}</div></div>`;
-          document.getElementById("progressContainer").innerHTML = progressHtml;
-      });
-}
-
-// Function to generate distinct colors for users
-function getRandomColor() {
-  const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#A133FF", "#FFC300"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}*/
-
 
 function loadJobWorkDetails() {
   const jobId = document.getElementById("jobIdInput").value;
@@ -1186,7 +1135,7 @@ function loadJobWorkDetails() {
   `;
 
   // Fetch job progress details
-  fetch(`http://10.0.2.161:3003/get-job-work-details?jobId=${jobId}`)
+  fetch(`${backendBaseUrl}/get-job-work-details?jobId=${jobId}`)
     .then(response => response.json())
     .then(data => {
       if (data.error) {
