@@ -20,7 +20,7 @@ body, body.new-font-family * {
 /* Separate Header */
 header {
   display: flex;
-  background-color: teal;
+  background-color: #003865 !important;
   padding: 20px;
   text-align: center;
   color: white;
@@ -68,12 +68,12 @@ header h1 {
 /* Button styling */
 
 button{
-  background-color: teal !important;
+  background-color: #003865 !important;
 }
 
 #start-btn, #stop-btn, #finish-btn {
   margin:10px;
-  background-color: teal;
+  background-color: #003865 !important;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -161,46 +161,6 @@ a:hover {
   color: lightskyblue;
 }
 
-/*#export-btn {
-  margin: 10px;
-  position: absolute;
-  right: 135px;
-  cursor: pointer;
-  background-color: mediumseagreen !important;
-  color: white;
-  border: none;
-  padding: 10px;
-  font-size: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1) !important;
-  border-radius: 5px;
-}
-
-
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-  padding: 10px;
-}
-
-#logout {
-  position: absolute;
-  right: 10px;
-  background-color: white;
-  color: black;
-  padding: 10px 15px;
-  font-size: 25px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  margin: 10px;
-}*/
-
-
-
-
 
 /* Styling for message */
 #message {
@@ -227,7 +187,7 @@ select#staff-select {
 }
 
 #records-table  th {
-  background-color: teal;
+  background-color: #003865 !important;
   color: white;
   font-size: 20px;
   font-family: arial;
@@ -371,15 +331,13 @@ input#jobid-search1 {
 
 .nav1{
   margin-right:10px;
+  display: flex;
+  align-items: center;
+  gap:20px;
 }
 
 
     /* Basic styling for the dropdown menu */
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
     .dropdown-content {
       display: none;
       position: absolute;
@@ -415,9 +373,9 @@ input#jobid-search1 {
     .dropdown .dropdown-content {
       padding: 2px;
       z-index: 1;
-      right: 60px;
-      top: 19px;
-      left: 48px;
+      right: 127px !important;
+      top: 85px;
+      /* left: 48px; */
   }
 
     /*Export navbar */
@@ -568,7 +526,9 @@ span.select2.select2-container.select2-container--default {
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 25px;
+  left: 20px;
+  position: relative;
 }
 input#new-staff-name {
   font-size: 15px;
@@ -1028,12 +988,11 @@ input#custName {
 .menu-btn {
   font-size: 30px;
   cursor: pointer;
-  position: absolute;
-  top: 8px;
   left: 30px;
   background: none;
   border: none;
   z-index: 1;
+  color:white;
 }
 
 .sidebar {
@@ -1058,7 +1017,7 @@ input#custName {
   width: 70%;
   padding: 10px;
   margin: 5px 0px;
-  background: teal;
+  background: #003865 !important;
   color: white;
   border: none;
   cursor: pointer;

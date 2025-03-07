@@ -221,6 +221,9 @@ function searchAV() {
 <body>
   <!-- Separate Header -->
   <header>
+    <div class="logo">
+      <img src="logo.JPG" alt="" class="imglogo">
+    </div>
     <div class="headr">Master Instruments</div>
     <div id="usericon">
     <img src="profile.png" alt="">
@@ -230,8 +233,18 @@ function searchAV() {
   
   <!-- Navigation Bar -->
   <nav class="nav">
-    <div class="logo">
-      <img src="logo.JPG" alt="" class="imglogo">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <div class="sidebar" id="sidebar">
+        <h3>Menu</h3>
+        <div class="container-2">
+            <input type="text" id="jobIdInput" placeholder="Enter Job ID">
+            <div class="card-btn">
+              <button onclick="loadJobWorkDetails()">View Job Progress</button>
+              <button class="clear-filter1" id="clear-filter1">Clear</button>
+            </div>
+            <div id="progressContainer"></div>
+            <button onclick="toggleMenu()">Close</button>
+        </div>
     </div>
     <div class="nav1">
     <div class="dropdown">
@@ -241,7 +254,6 @@ function searchAV() {
         <!--<a href="#" onclick="openModal('job')">Add Job ID</a>-->
         <a href="add_job.html"onclick="openModal('job')" target="_blank">Add Job ID</a> <!-- Redirect to add_job.html -->
         <a href="formtoPDF.html" target="_blank"> Form To Pdf</a>
-        <a href="#" onclick="openModal('TotalLaborcost')">View Jobs</a>
         <a href="#" onclick="openViewAVModal()">View AV</a>
         <!-- In the dropdown-content div 
         <a href="#" onclick="openModal('finished-jobs')">View Finished Jobs</a> -->
@@ -266,21 +278,6 @@ function searchAV() {
     </div>
   </div>
 
-
-  <div id="TotalLaborcostModal" class="modal1">
-    <div class="modal-content1">
-      <span class="close1" onclick="closeModal('TotalLaborcost')">&times;</span>
-      <h2>Job IDs and Total Labor Costs</h2>
-      <!-- Search Input and Button -->
-        <div>
-            <input type="text" id="jobSearchInput" placeholder="Search by Job ID" oninput="searchJobs()">
-            <button onclick="searchJobs()" type="button">Search</button>
-        </div>
-      <div id="job-list-container">
-        <p>Loading jobs...</p>
-      </div>
-    </div>
-  </div>
 
 <!-- View AV Modal -->
 <div id="viewAVModal" class="modal" style="display:none;">
@@ -316,19 +313,7 @@ function searchAV() {
   </div>
 </div>
 
-<button class="menu-btn" onclick="toggleMenu()">☰</button>
-    <div class="sidebar" id="sidebar">
-        <h3>Menu</h3>
-        <div class="container-2">
-            <input type="text" id="jobIdInput" placeholder="Enter Job ID">
-            <div class="card-btn">
-              <button onclick="loadJobWorkDetails()">View Job Progress</button>
-              <button class="clear-filter1" id="clear-filter1">Clear</button>
-            </div>
-            <div id="progressContainer"></div>
-        </div>
-        <button onclick="toggleMenu()">Close</button>
-    </div>
+
   
 
   <div class="page-container">

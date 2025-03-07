@@ -29,7 +29,7 @@
   }
   header {
     display: flex;
-    background-color: teal;
+    background-color: #003865 !important;
     padding: 20px;
     text-align: center;
     color: white;
@@ -112,7 +112,7 @@
     padding: 10px;
     margin-top: 16px;
     margin: 40px auto;
-    background-color: #4CAF50;
+    background-color: #003865 !important;
     color: white;
     border: none;
     border-radius: 4px;
