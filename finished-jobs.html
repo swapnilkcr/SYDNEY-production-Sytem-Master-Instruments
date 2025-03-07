@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finished Jobs</title>
+  <link rel="icon" href="./logo.JPG" type="image/x-icon">
   <link rel="stylesheet" href="Style.css">
   <style>
     body {
@@ -73,11 +74,41 @@
       background: gray;
       cursor: not-allowed;
     }
+
+    .filter-container1 {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+#filterType {
+  padding: 8px;
+  border-radius: 5px;
+}
+
+
+header.finished_jobs {
+    font-size: 30px !important;
+    padding: 30px;
+}
+
+.finished_jobs a{
+  font-size: 30px !important;
+}
+
+h1.h1 {
+    font-size: 30px;
+}
+
+div#finished-jobs-container {
+    overflow: auto;
+    font-size: 20px;
+}
   </style>
 </head>
 <body>
-  <header>
-    <h1>Finished Jobs</h1>
+  <header class="finished_jobs">
+    <h1 class="h1">Finished Jobs</h1>
     <a href="layout.html" style="color: white; text-decoration: none;">🏠 HOME</a>
   </header>
 
@@ -87,45 +118,12 @@
 
   <div id="finished-jobs-container">
     <table id="jobsTable">
-      <thead>
-        <tr>
-          <th>Job ID</th>
-          <th>Customer Name</th>
-          <th>Completion Date</th>
-          <th>Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Data will be inserted here -->
-      </tbody>
     </table>
-  </div>
-
-  <div class="pagination">
-    <button id="prevPage" onclick="prevPage()" disabled>⬅️ Previous</button>
-    <span id="pageNumber">Page 1</span>
-    <button id="nextPage" onclick="nextFinishedPage()">Next ➡️</button>
   </div>
 
   <script src="clock.js"></script>
   <script>
-    let currentPage = 1;
-    const pageSize = 5;
-    let jobsData = [];
 
-    document.addEventListener("DOMContentLoaded", () => {
-        fetchFinishedJobs();
-    });
-
-    function fetchFinishedJobs() {
-      fetch("http://127.0.0.1:3001/get-finished-jobs") // Update with your backend URL
-        .then(response => response.json())
-        .then(data => {
-          jobsData = data.jobs || [];
-          renderTable();
-        })
-        .catch(error => console.error("Error fetching jobs:", error));
-    }
 
     function renderTable() {
       const tableBody = document.querySelector("#jobsTable tbody");
@@ -151,14 +149,14 @@
     }
 
     function nextFinishedPage() {
-      if (currentPage1 * pageSize < jobsData.length) {
-        currentPage1++;
+      if (currentPage * pageSize < jobsData.length) {
+        currentPage++;
         renderTable();
       }
     }
 
     function prevPage() {
-      if (currentPage1 > 1) {
+      if (currentPage > 1) {
         currentPage1--;
         renderTable();
       }
@@ -167,6 +165,7 @@
     function viewDetails(jobId) {
       alert("More details for Job ID: " + jobId);
     }
+
 </script>
 
 </body>

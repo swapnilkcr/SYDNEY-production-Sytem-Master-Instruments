@@ -1,7 +1,7 @@
 
 PRAGMA table_info(MergedData);
 
-
+.tables
 INSERT INTO Users (username, password) 
 VALUES ('Admin', 'Password123');
 select * from MergedData;
@@ -26,6 +26,7 @@ SELECT * FROM PN_DATA;
 .TABLES
 
 Delete FROM PN_DATA WHERE DISCOUNT= 0.0;
+
 
 
 
@@ -257,9 +258,58 @@ CREATE INDEX idx_pndata_pn ON PN_DATA(PN);
 
 
 
+ALTER TABLE JOBSFINISHED ADD COLUMN RemainingTime REAL DEFAULT 0.0;
+ALTER TABLE JobTable 
+    ADD COLUMN RemainingTime REAL DEFAULT 0.0
+ALTER TABLE JOBSFINISHED ADD COLUMN TotalHoursWorked REAL DEFAULT 0;
+
+select * from JobsFinished;
+
+PRAGMA table_info(JOBSFINISHED);
+select * from JobTable;
+
+SELECT * FROM ClockInOut WHERE JobID = '7ABCD';
+SELECT * FROM PN_DATA WHERE PN = '7ABCD';
+
+
+SELECT * FROM JOBSFINISHED WHERE PN = '7ABCD';
+SELECT * FROM JobTable WHERE JobID = '7ABCD';
+
+
+Select * from JobTable;
+
+SELECT * FROM PN_DATA WHERE PN = '7ABCD';  -- Job details table
+SELECT * FROM ClockInOut WHERE JobID = '7ABCD';  -- Clock-in records
+SELECT * FROM JOBSFINISHED WHERE PN = '7ABCD';  -- Completed jobs
 
 
 
+Delete JobID_New from JobTable;
+PRAGMA table_info(JobTable);
+PRAGMA table_info(PN_DATA);
+
+SELECT * FROM JobTable;
+INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
+SELECT PN, 0.0, 0.0, 0.0, 0.0 FROM PN_DATA WHERE PN NOT IN (SELECT JobID FROM JobTable);
+
+
+ALTER TABLE JobTable ADD COLUMN JobID_New TEXT;
+UPDATE JobTable SET JobID_New = JobID;
+ALTER TABLE JobTable DROP COLUMN JobID;
+ALTER TABLE JobTable RENAME COLUMN JobID_New TO JobID;
+
+
+CREATE TABLE JobTable (
+    JobID TEXT PRIMARY KEY,
+    TotalLaborCost REAL DEFAULT 0,
+    EstimatedTime REAL,
+    TotalHoursWorked REAL,
+    RemainingTime REAL DEFAULT 0.0
+);
+
+
+INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
+SELECT PN, 0, 0, 0, 0 FROM PN_DATA WHERE PN NOT IN (SELECT JobID FROM JobTable);
 
 
 

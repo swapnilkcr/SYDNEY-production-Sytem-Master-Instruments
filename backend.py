@@ -223,39 +223,73 @@ def get_av_by_stock_code(stock_code):
     except Exception as e:
         print(f"Error fetching AV from STOCKCODE: {e}")
         return None
-
 def get_job_work_details(job_id):
     """Fetch total hours worked per user for a given job."""
-    conn = sqlite3.connect('clock_in_management.db')
-    cursor = conn.cursor()
+    try:
+        conn = sqlite3.connect('clock_in_management.db')
+        cursor = conn.cursor()
 
-    cursor.execute('''
-        SELECT StaffName, 
-               SUM(
-                   (strftime('%s', COALESCE(StopTime, 'now')) - strftime('%s', StartTime)) / 3600.0
-               ) AS TotalHoursWorked
-        FROM ClockInOut 
-        WHERE JobID = ?
-        GROUP BY StaffName
-    ''', (job_id,))
+        # 1. Check if the job is in the JOBSFINISHED table
+        cursor.execute('''
+            SELECT EstimatedTime, RemainingTime 
+            FROM JOBSFINISHED 
+            WHERE PN = ?
+        ''', (job_id,))
+        finished_job_data = cursor.fetchone()
 
-    results = cursor.fetchall()
-    conn.close()
+        if finished_job_data:
+            # If job is finished, use stored values
+            estimated_time = finished_job_data[0]
+            remaining_time = finished_job_data[1]
+        else:
+            # If job is active, calculate estimated and remaining time
+            estimated_time = calculate_estimated_time(job_id)
+            remaining_time = max(estimated_time - get_total_hours_worked(job_id), 0.0)
 
-    # Convert to JSON format
-    users = [{'name': row[0], 'hours': round(row[1], 2)} for row in results]
-    
-    # Get estimated time
-    estimated_time = calculate_estimated_time(job_id)
-    total_worked = sum([user['hours'] for user in users])
-    remaining_time = max(estimated_time - total_worked, 0)  # Prevent negative values
+        # 2. Fetch total hours worked per user
+        cursor.execute('''
+            SELECT StaffName, 
+                   SUM(
+                       (strftime('%s', COALESCE(StopTime, 'now')) - strftime('%s', StartTime)) / 3600.0
+                   ) AS TotalHoursWorked
+            FROM ClockInOut 
+            WHERE JobID = ?
+            GROUP BY StaffName
+        ''', (job_id,))
 
-    return {
-        'jobId': job_id,
-        'estimatedTime': estimated_time,
-        'users': users,
-        'remainingTime': remaining_time
-    }
+        results = cursor.fetchall()
+        conn.close()
+
+        # Convert to JSON format
+        users = [{'name': row[0], 'hours': round(row[1], 2)} for row in results]
+        
+        # Calculate total hours worked
+        total_worked = sum([user['hours'] for user in users])
+
+        # For finished jobs, ensure remaining time matches stored value
+        if finished_job_data:
+            remaining_time = finished_job_data[1]
+        else:
+            remaining_time = max(estimated_time - total_worked, 0.0)
+
+        return {
+            'jobId': job_id,
+            'estimatedTime': estimated_time,
+            'users': users,
+            'remainingTime': remaining_time,
+            'totalHoursWorked': total_worked
+        }
+
+    except Exception as e:
+        print(f"Error in get_job_work_details: {e}")
+        return {
+            'error': str(e),
+            'jobId': job_id,
+            'estimatedTime': 0.0,
+            'users': [],
+            'remainingTime': 0.0,
+            'totalHoursWorked': 0.0
+        }
 
 
 
@@ -877,9 +911,20 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 ''', (job_id, input_date, no_cell, draw_no, req_date, cust, stock_code, qty, cell_code, b_price, 
                     order_no, model, vol, ah, wh, chem, structure, staff, workhr, hrpp, end_date, test_time, 
                     av, s_price, discount, salesman, customer_code, order_date))
+                
+
+
+                #Adds job to JobTable
+                cursor.execute(''' 
+                    INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
+                    SELECT ?, 0, 0, 0, 0.0
+                    WHERE NOT EXISTS (SELECT 1 FROM JobTable WHERE JobID = ?)
+                ''', (job_id, job_id))
+
+                
 
                 conn.commit()
-                conn.close()
+                
 
                 # Send success response
                 self.send_response(200)
@@ -887,7 +932,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'message': 'Job added successfully!'}).encode('utf-8'))
-
+                
+                conn.close()
             except Exception as e:
                 # Log the error for debugging
                 print(f"Error: {e}")
@@ -1152,15 +1198,17 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
             # Calculate Total Hours Worked
             total_hours_worked = get_total_hours_worked(job_id)
+            remaining_time = max(estimated_time - total_hours_worked, 0.0)
             # Insert or update the total labor cost in JobTable
             cursor.execute('''
-            INSERT INTO JobTable (JobID, TotalLaborCost,EstimatedTime,TotalHoursWorked)
+            INSERT INTO JobTable (JobID, TotalLaborCost,EstimatedTime,TotalHoursWorked,RemainingTime)
             VALUES (?, ?)
             ON CONFLICT(JobID) DO UPDATE SET 
             TotalLaborCost = excluded.TotalLaborCost,
             EstimatedTime = excluded.EstimatedTime,
-            TotalHoursWorked = excluded.TotalHoursWorked
-            ''', (job_id, total_labor_cost,estimated_time,total_hours_worked))
+            TotalHoursWorked = excluded.TotalHoursWorked,
+            RemainingTime = excluded.RemainingTime             
+            ''', (job_id, total_labor_cost,estimated_time,total_hours_worked,remaining_time))
 
             conn.commit()
             conn.close()
@@ -1193,196 +1241,6 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 conn.close()
 
 
-
-    '''def handle_move_job(self):
-        try:
-            # Step 1: Read jobId from the POST request
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-
-            job_id = data.get('jobId')
-            if not job_id:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Job ID is required.'}).encode('utf-8'))
-                return
-            job_id = str(job_id).strip()  # Remove any leading or trailing spaces
-
-            # Step 2: Load the Excel file
-            excel_file = 'Sample.xlsx'
-            if not os.path.isfile(excel_file):
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Sample.xlsx file not found.'}).encode('utf-8'))
-                return
-
-            # Open the workbook
-            wb = openpyxl.load_workbook(excel_file)
-
-            # Ensure "Sheet1" exists
-            if "Sheet1" not in wb.sheetnames:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Sheet1 not found in Sample.xlsx.'}).encode('utf-8'))
-                return
-
-            sheet1 = wb["Sheet1"]
-
-            # Step 3: Locate the row with the given jobId in "Sheet1"
-            headers = [cell.value for cell in sheet1[1]]  # Get headers from the first row
-            if 'PN' not in headers:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'PN column not found in Sheet1 headers.'}).encode('utf-8'))
-                return
-
-            pn_index = headers.index('PN')  # Find the column index for 'PN'
-            target_row = None
-
-            for row in sheet1.iter_rows(min_row=2, values_only=False):
-                pn_value = row[pn_index].value 
-                if pn_value and str(pn_value).strip()  == job_id:
-                    target_row = [cell.value for cell in row]
-                    for cell in row:
-                        cell.value = None  # Mark row for deletion
-                    break
-
-            if not target_row:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Job ID not found in Sheet1.'}).encode('utf-8'))
-                return
-
-            # Step 4: Append the row to the "FINISHED JOBS" sheet
-            if "FINISHED JOBS" not in wb.sheetnames:
-                wb.create_sheet("FINISHED JOBS")
-            finished_sheet = wb["FINISHED JOBS"]
-
-            # Write headers if "FINISHED JOBS" is empty
-            if finished_sheet.max_row == 1 and all(cell.value is None for cell in finished_sheet[1]):
-                finished_sheet.append(headers)
-
-            # Append the target row
-            finished_sheet.append(target_row)
-
-            # Step 5: Remove blank rows from "Sheet1"
-            rows_to_keep = [row for row in sheet1.iter_rows(values_only=True) if any(cell is not None for cell in row)]
-            sheet1.delete_rows(1, sheet1.max_row)  # Clear Sheet1
-            for row in rows_to_keep:
-                sheet1.append(row)
-
-            # Step 6: Save the updated Excel file
-            wb.save(excel_file)
-
-            # Step 7: Update the FinishedJobs SQLite database
-            db_path = 'clock_in_management.db'  # Your SQLite database path
-            try:
-                conn = sqlite3.connect(db_path)
-                cursor = conn.cursor()
-
-                # Assuming you have a FinishedJobs table with a 'job_id' column
-                cursor.execute("INSERT INTO JOBSFINISHED (JOBID) VALUES (?)", (job_id,))
-                conn.commit()
-                conn.close()
-                print(f"Job {job_id} moved to FinishedJobs database successfully.")
-            except sqlite3.Error as db_error:
-                print(f"Error updating FinishedJobs database: {db_error}")
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': f'Error updating FinishedJobs database: {db_error}'}).encode('utf-8'))
-                return
-
-            # Step 8: Respond with success
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Job moved to FINISHED JOBS successfully!'}).encode('utf-8'))
-
-        except Exception as e:
-            print(f"Error in handle_move_job: {e}")
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': f'Unexpected error: {e}'}).encode('utf-8'))'''
-    
-    
-    '''def handle_move_job(self):
-        try:
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-
-            job_id = data.get('jobId')
-            if not job_id:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Job ID is required.'}).encode('utf-8'))
-                return
-            job_id = str(job_id).strip()
-
-            with sqlite3.connect(DB_NAME, timeout=30) as conn:
-                cursor = conn.cursor()
-                
-                # Enable WAL mode for better concurrency
-                cursor.execute("PRAGMA journal_mode=WAL;")
-                cursor.execute("PRAGMA busy_timeout = 3002")
-
-                # Get table columns
-                cursor.execute("PRAGMA table_info(PN_DATA)")
-                columns_info = cursor.fetchall()
-                columns = [col[1] for col in columns_info]  
-
-                # Create JOBSFINISHED table
-                create_table_query = f"""
-                CREATE TABLE IF NOT EXISTS JOBSFINISHED (
-                    {', '.join([f'"{col}" TEXT' for col in columns])},
-                    "TotalLaborCost" REAL
-                );
-                """
-                cursor.execute(create_table_query)
-
-                # Fetch job data
-                select_query = f"SELECT {', '.join([f'"{col}"' for col in columns])} FROM PN_DATA WHERE PN = ?"
-                cursor.execute(select_query, (job_id,))
-                job_data = cursor.fetchone()
-
-                if not job_data:
-                    self.send_response(404)
-                    self.end_headers()
-                    self.wfile.write(json.dumps({'message': 'Job ID not found in PN_DATA.'}).encode('utf-8'))
-                    return
-
-                # Fetch TotalLaborCost
-                labor_cost_result = execute_with_retry(cursor, "SELECT TotalLaborCost FROM JobTable WHERE JobID = ?", (job_id,)) # type: ignore
-                total_labor_cost = labor_cost_result[0] if labor_cost_result else 0.0
-
-                # Insert into JOBSFINISHED
-                columns.append("TotalLaborCost")
-                insert_query = f"INSERT INTO JOBSFINISHED ({', '.join([f'"{col}"' for col in columns])}) VALUES ({', '.join(['?'] * len(columns))})"
-                execute_with_retry(cursor, insert_query, job_data + (total_labor_cost,)) # type: ignore
-
-                # Delete from PN_DATA
-                execute_with_retry(cursor, "DELETE FROM PN_DATA WHERE PN = ?", (job_id,))
-                
-                conn.commit()
-
-        except sqlite3.OperationalError as e:
-            print(f"Database locked error: {e}")
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Database is locked. Please try again later.'}).encode('utf-8'))
-
-        except Exception as e:
-            print(f"Error in handle_move_job: {e}")
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': f'Unexpected error: {e}'}).encode('utf-8'))'''
-    
-
     def handle_move_job(self):
         try:
             content_length = int(self.headers.get('Content-Length', 0))
@@ -1400,41 +1258,77 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             with sqlite3.connect(DB_NAME, timeout=30) as conn:
                 cursor = conn.cursor()
 
-                # 1. Get labor cost first
+                # Step 1: Ensure the job exists in JobTable, add it if missing
+                execute_with_retry(cursor, "SELECT 1 FROM JobTable WHERE JobID = ?", (job_id,))
+                job_exists = cursor.fetchone()
+
+                if not job_exists:
+                    print(f"⚠️ Job {job_id} missing in JobTable. Adding it now.")
+                    execute_with_retry(cursor, """
+                        INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
+                        SELECT PN, 0, 0, 0, 0.0 FROM PN_DATA WHERE PN = ?
+                    """, (job_id,))
+                    conn.commit()
+                    print(f"✅ Job {job_id} added to JobTable.")
+
+                # Step 2: Fetch job metrics, handling missing values
                 execute_with_retry(cursor, 
-                    "SELECT TotalLaborCost FROM JobTable WHERE JobID = ?", 
+                    '''SELECT TotalLaborCost, 
+                            COALESCE(EstimatedTime, 0), 
+                            COALESCE(TotalHoursWorked, 0), 
+                            COALESCE(RemainingTime, 0) 
+                    FROM JobTable WHERE JobID = ?''', 
                     (job_id,)
                 )
-                labor_cost_result = cursor.fetchone()
-                labor_cost = labor_cost_result[0] if labor_cost_result else 0.0  # Handle null
+                job_metrics = cursor.fetchone()
 
-                # 2. Get PN_DATA column definitions
+                if not job_metrics:
+                    raise ValueError(f"No metrics found for job {job_id}")
+
+                # Unpack and calculate missing values
+                labor_cost, estimated_time, total_hours_worked, remaining_time = job_metrics
+
+                if estimated_time == 0:
+                    estimated_time = calculate_estimated_time(job_id)
+
+                if total_hours_worked == 0:
+                    total_hours_worked = get_total_hours_worked(job_id)
+
+                remaining_time = max(estimated_time - total_hours_worked, 0.0)
+
+                print(f"📊 Moving job {job_id} -> LaborCost: {labor_cost}, Estimated: {estimated_time}, "
+                    f"TotalWorked: {total_hours_worked}, Remaining: {remaining_time}")
+
+                # Step 3: Ensure JOBSFINISHED table exists
                 cursor.execute("PRAGMA table_info(PN_DATA)")
                 columns = [f'"{col[1]}" {col[2]}' for col in cursor.fetchall()]
-                
-                # 3. Create JOBSFINISHED table
+
                 create_query = f"""
                     CREATE TABLE IF NOT EXISTS JOBSFINISHED (
                         {', '.join(columns)},
-                        TotalLaborCost REAL
+                        TotalLaborCost REAL,
+                        EstimatedTime REAL,
+                        TotalHoursWorked REAL,
+                        RemainingTime REAL
                     )
                 """
                 execute_with_retry(cursor, create_query)
 
-                # 4. Get column names for insert
+                # Step 4: Move job to JOBSFINISHED
                 column_names = [f'"{col[1]}"' for col in cursor.execute("PRAGMA table_info(PN_DATA)")]
-                
-                # 5. Insert with all columns
                 insert_query = f"""
-                    INSERT INTO JOBSFINISHED ({', '.join(column_names)}, TotalLaborCost)
-                    SELECT {', '.join(column_names)}, ? 
+                    INSERT INTO JOBSFINISHED ({', '.join(column_names)}, 
+                        TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
+                    SELECT {', '.join(column_names)}, ?, ?, ?, ?
                     FROM PN_DATA 
                     WHERE PN = ?
                 """
-                execute_with_retry(cursor, insert_query, (labor_cost, job_id))
+                execute_with_retry(cursor, insert_query, 
+                    (labor_cost, estimated_time, total_hours_worked, remaining_time, job_id))
 
-                # 6. Delete original
+                # Step 5: Delete from PN_DATA and JobTable after moving
                 execute_with_retry(cursor, "DELETE FROM PN_DATA WHERE PN = ?", (job_id,))
+                execute_with_retry(cursor, "DELETE FROM JobTable WHERE JobID = ?", (job_id,))
 
                 commit_with_retry(conn)
 
@@ -1456,6 +1350,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.set_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Server error'}).encode('utf-8'))
+
+
     
 
     def get_av_value(self, draw_no):

@@ -25,7 +25,6 @@ header {
   text-align: center;
   color: white;
   position: relative;
-  font-style: italic;
   font-weight: 700;
   font-size: 20px;
   /* box-shadow: 0 10px 6px rgba(0, 0, 0, 0.1); */
@@ -47,7 +46,7 @@ header {
 
 header h1 {
   margin: 0;
-  font-size: 35px;
+  font-size: 20px;
 }
 
 
@@ -469,6 +468,16 @@ span.select2.select2-container.select2-container--default {
       margin: 0px 50px;
       font-weight: bold;
   }
+  .dropbtn::after {
+    display: inline-block;
+    margin-left: .255em;
+    vertical-align: .255em;
+    content: "";
+    border-top: .3em solid;
+    border-right: .3em solid transparent;
+    border-bottom: 0;
+    border-left: .3em solid transparent;
+}
 
 /* Modal styling */
 .modal {
@@ -1009,8 +1018,9 @@ input#jobIdInput {
 
 
 input#custName {
-  padding: 10px;
+  padding: 20px;
   border-radius: 5px;
+  font-size: 20px;
 }
 
 

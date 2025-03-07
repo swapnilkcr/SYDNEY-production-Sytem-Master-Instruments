@@ -215,56 +215,6 @@ fetch(`${backendBaseUrl}/get-config`)
 
 
   
-
-  /*const searchInput = document.getElementById('pn-search');
-  if (searchInput) {
-      searchInput.addEventListener('keyup', searchByPN);
-  } else {
-      console.error("Error: Search input element not found.");
-  }*/
-  // Stop button logic
-  /*stopBtn.addEventListener('click', () => {
-    const runningJobSelect = document.getElementById('running-job-select');
-    const selectedValue = runningJobSelect.value;
-  
-    if (!selectedValue) {
-      messageDiv.textContent = 'Please select a running job to stop.';
-      return;
-    }
-  
-    const [staffName, jobId] = selectedValue.split('|');
-    const stopTime = new Date();
-    const formattedStopTime = formatDate(stopTime);
-  
-    const data = {
-      staffName,
-      jobId,
-      stopTime: formattedStopTime,
-    };
-  
-    console.log('Stop button clicked. Sending stop-job request:', data); // Debugging log
-  
-    fetch(`${BASE_URL}/stop-job`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-      .then(response => {
-        console.log('Stop-job response status:', response.status); // Debugging log
-        if (!response.ok) throw new Error('Failed to stop the job.');
-        return response.json();
-      })
-      .then(result => {
-        console.log('Job stopped successfully:', result); // Debugging log
-        fetchRunningJobs(); // Refresh the running jobs list
-        messageDiv.textContent = result.message || 'Job stopped successfully!';
-      })
-      .catch(error => {
-        console.error('Error stopping the job:', error);
-        messageDiv.textContent = `Error stopping the job: ${error.message}`;
-      });
-  });*/
-  
   
 
   stopBtn.addEventListener('click', (event) => {
@@ -296,6 +246,7 @@ fetch(`${backendBaseUrl}/get-config`)
             } else {
                 messageDiv.textContent = 'No active job found for given Staff Name and job I';
             }
+            window.location.reload();
         })
         .catch(error => {
             console.error('Error stopping the job:', error);
@@ -674,76 +625,6 @@ function fetchRunningJobs() {
 
 
 
-
-  /*
-  // Fixed addJob function to handle adding jobs properly
-  function addJob() {
-    const jobIdInput = document.getElementById('new-job-id');
-    const customerInput = document.getElementById('customer');
-    const stockCodeInput = document.getElementById('stock-code');
-    const qtyInput = document.getElementById('quantity');
-    const drawNoInput = document.getElementById('draw-no');
-
-    if (!jobIdInput || !customerInput || !stockCodeInput || !qtyInput || !drawNoInput) {
-      console.error('Error: One or more input elements not found.');
-      return;
-    }
-    
-
-    const jobData = {
-      jobId: jobIdInput.value.trim(),
-      cust: customerInput.value.trim(),
-      stockCode: stockCodeInput.value.trim(),
-      qty: parseInt(qtyInput.value.trim()) || 0,
-      drawNo: drawNoInput.value.trim(),
-      reqDate: document.getElementById('req-date').value || '',
-      cellCode: document.getElementById('cell-code').value || '',
-      bPrice: parseFloat(document.getElementById('b-price').value) || 0,
-      orderNo: document.getElementById('order-no').value || '',
-      model: document.getElementById('model').value || '',
-      av: parseFloat(document.getElementById('av').value) || 0,
-      salesman: document.getElementById('salesman').value || '',
-    };
-
-    fetch(`${BASE_URL}/add_job`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jobData),
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(errorData => {
-            console.error('Error response:', errorData);
-            throw new Error(errorData.error || 'Failed to add job.');
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert(data.message);
-        jobIdInput.value = '';
-        customerInput.value = '';
-        stockCodeInput.value = '';
-        qtyInput.value = '';
-        drawNoInput.value = '';
-        document.getElementById('modal-job').style.display = 'none';
-
-        setTimeout(() => {
-          fetchJobs(); // Refresh job list
-        },1000);
-      })
-      .catch(error => {
-        console.error('Error adding job:', error);
-        alert(`Error adding job: ${error.message}`);
-      });
-  } */
-
-
-
-//Function to fetch staff and add staff
-// Fetch staff and populate the dropdown
-
-
 let isFetching = false;
 function fetchStaff() {
   console.log('fetching')
@@ -946,12 +827,6 @@ function searchJobs() {
   displayJobs(filteredJobs);  // Display filtered jobs
 }
 
-//LAYERING FOR DIFFERENT USERS.
-
-/*function logout() {
-  localStorage.clear(); // Clear stored user data
-  window.location.href = "http://10.0.2.161:3004/Login.html"; // Redirect to login page
-}*/
 
 
 function addRunningJob(staffName, jobId) {
@@ -1193,8 +1068,6 @@ function clearFilter1() {
   document.getElementById('jobIdInput').value = '';
   document.getElementById('progressContainer').innerHTML='';
 }
-
-
 
 
 
