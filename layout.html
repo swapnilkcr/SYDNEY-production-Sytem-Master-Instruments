@@ -34,9 +34,18 @@
   }
   
   function toggleMenu() {
-            var sidebar = document.getElementById("sidebar");
+            const sidebar = document.getElementById("sidebar");
             sidebar.classList.toggle("active");
         }
+        document.addEventListener('click', (event) => {
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.querySelector('.menu-btn');
+
+    if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+      sidebar.classList.remove('active');
+    }
+  });
+  document.querySelector('.menu-btn').addEventListener('click', toggleMenu);
 
         function fetchJobDetails() {
             var jobId = document.getElementById("jobIdInput").value;
@@ -100,7 +109,7 @@ function showTable() {
     }
 
 
-    document.addEventListener('DOMContentLoaded', function () {
+    /*document.addEventListener('DOMContentLoaded', function () {
     const moveJobButton = document.getElementById('moveJobButton');
     
     if (moveJobButton) {
@@ -135,17 +144,17 @@ function showTable() {
     } else {
       console.error('moveJobButton not found!');
     }
-  });
+  });*/
 
-  $(document).ready(function() {
+  /*$(document).ready(function() {
     // Initialize Select2 on the dropdown with ID 'jobId'
     $('#job-select').select2();
   });
-  $('#jobId').select2({
+  $('#job-select').select2({
   placeholder: "Search for a job ID",
   allowClear: true, // Adds a clear (X) button
   minimumInputLength: 1 // Require at least 1 character to start searching
-});
+})*/
 
 
 function logout() {
@@ -245,6 +254,9 @@ function searchAV() {
             <div id="progressContainer"></div>
             <button onclick="toggleMenu()">Close</button>
         </div>
+        
+
+        
     </div>
     <div class="nav1">
     <div class="dropdown">
@@ -406,6 +418,7 @@ function searchAV() {
             <th>Estimated Time (hrs)</th>
             <th>Remaining Time</th>
             <th>Labor Cost</th>
+            <th>Status</th>
             <th>Modify</th>
             
           </tr>

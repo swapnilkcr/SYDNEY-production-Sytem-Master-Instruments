@@ -180,6 +180,9 @@ a:hover {
   padding: 10px;
   border-radius: 10px;
 }
+select#job-select {
+  width: 300px;
+}
 
 select#staff-select {
   width: 300px;
@@ -194,18 +197,18 @@ select#staff-select {
   font-weight: 300;
 }
 
-tr:nth-child(even) {
+/*tr:nth-child(even) {
   background-color: #f9f9f9;
 }
 
 tr:hover {
   background-color: #f1f1f1;
-}
+}*/
 
 
 #records-table {
   margin-top: 20px;
-  background-color: lightgrey;
+  /*background-color: lightgrey;*/
   display: none;
   border: 1px solid black;
   font-size: 20px;
@@ -403,7 +406,11 @@ input#jobid-search1 {
 }
 
 ul#select2-job-select-results li {
-    font-size: 20px;
+    font-size: 15px;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: black !important;
+  font-size: 15px;
 }
 
 span.select2.select2-container.select2-container--default {
@@ -671,7 +678,7 @@ button#moveJobButton:hover {
 }
 
 input.select2-search__field {
-  font-size: 25px;
+  font-size: 15px;
   border-radius: 5px;
 }
 
@@ -1005,6 +1012,8 @@ input#custName {
   color: white;
   transition: left 0.3s;
   padding: 15px;
+  overflow-y: auto;
+  z-index: 1;
 }
 
 .sidebar.active {
@@ -1027,8 +1036,9 @@ input#custName {
 }
 .container-2 {
   background: white;
-  padding: 10px;
-  margin-top: 20px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  
   
 }
 
@@ -1072,3 +1082,42 @@ button#next-page {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+
+/* Styling for finished-jobs in view-times table */
+/* Add status column styling */
+#records-table th:nth-child(13),
+#records-table td:nth-child(13) {
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Row highlighting */
+tr.finished-job {
+    background-color: lightgreen !important; /* Light green background */
+    border-left: 4px solid #2e7d32;       /* Dark green accent border */
+}
+
+tr.finished-job td {
+    position: relative;
+}
+
+tr.finished-job:hover {
+    background-color: #c8e6c9 !important;
+}
+
+/* Status badge styling */
+#records-table td:nth-child(13) {
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+#records-table td:nth-child(13):contains("Finished") {
+    color: #2e7d32;
+}
+
+#records-table td:nth-child(13):contains("Active") {
+    color: #d32f2f;
+}
+

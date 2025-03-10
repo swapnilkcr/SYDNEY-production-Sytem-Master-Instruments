@@ -63,7 +63,7 @@ fetch(`${backendBaseUrl}/get-config`)
 
 
 
-  document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
     event.preventDefault();
     const username = localStorage.getItem('username') || 'Unknown User';
     const userRole = localStorage.getItem('userRole') || 'Unknown Role';
@@ -323,37 +323,80 @@ function fetchRecords() {
 
 // Helper function to populate table
 function populateTable(records) {
-    const tableBody = document.querySelector('#records-table tbody');
-    tableBody.innerHTML = '';
-    
-    records.forEach(record => {
-        const row = document.createElement('tr');
-        const laborCost = typeof record.laborCost === 'number' ? 
-            `$${record.laborCost.toFixed(2)}` : 'N/A';
-        
-        row.innerHTML = `
-            <td>${record.staffName}</td>
-            <td>${record.jobId}</td>
-            <td>${record.drawingNumber}</td>
-            <td>${record.cellNo}</td>
-            <td>${record.quantity}</td>
-            <td>${record.customerName}</td>
-            <td>${formatDateTime(record.startTime)}</td>
-            <td>${formatDateTime(record.stopTime)}</td>
-            <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
-            <td>${record.estimatedTime.toFixed(2)} hrs</td>
-            <td>${record.remainingTime.toFixed(2)} hrs</td>
-            <td>${laborCost}</td>
-            ${localStorage.getItem('userRole') === 'admin' ? `
-                <td>
-                    <button class="row-btn1" onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
-                    <button class="row-btn2" onclick="deleteTime('${record.recordId}')">Delete</button>
-                </td>
-            ` : '<td></td>'}
-        `;
-        tableBody.appendChild(row);
-    });
+  const tableBody = document.querySelector('#records-table tbody');
+  tableBody.innerHTML = '';
+  
+  records.forEach(record => {
+      const row = document.createElement('tr');
+      // Add class based on status
+      if (record.status === 'Finished') {
+          row.classList.add('finished-job');
+      }
+      
+      const laborCost = typeof record.laborCost === 'number' ? 
+          `$${record.laborCost.toFixed(2)}` : 'N/A';
+
+      row.innerHTML = `
+          <td>${record.staffName}</td>
+          <td>${record.jobId}</td>
+          <td>${record.drawingNumber}</td>
+          <td>${record.cellNo}</td>
+          <td>${record.quantity}</td>
+          <td>${record.customerName}</td>
+          <td>${formatDateTime(record.startTime)}</td>
+          <td>${formatDateTime(record.stopTime)}</td>
+          <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
+          <td>${record.estimatedTime.toFixed(2)} hrs</td>
+          <td>${record.remainingTime.toFixed(2)} hrs</td>
+          <td>${laborCost}</td>
+          <td class="status-cell">${record.status || 'Active'}</td>
+      
+          ${localStorage.getItem('userRole') === 'admin' ? `
+              <td>
+                  <button class="row-btn1" onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
+                  <button class="row-btn2" onclick="deleteTime('${record.recordId}')">Delete</button>
+              </td>
+          ` : '<td></td>'}
+      `;
+      tableBody.appendChild(row);
+  });
 }
+
+
+//Move finished Jobs
+const moveJobBtn = document.getElementById('moveJobButton');
+  if (moveJobBtn) {
+    moveJobBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      const jobSelect = document.getElementById('job-select');
+      const jobId = jobSelect.value;
+
+      if (!jobId) {
+        alert('Please select a job to move.');
+        return;
+      }
+
+      fetch(`${BASE_URL}/move-job`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message || 'Job moved successfully!');
+        // Refresh job list
+        fetchJobs();
+        // Clear selection
+        jobSelect.value = '';
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error moving job: ' + error.message);
+      });
+    });
+  }
+
 
 // Updated pagination controls
 function updatePagination(data) {
@@ -447,41 +490,6 @@ function debounce(func, timeout = 300) {
         messageDiv.textContent = 'Error exporting data: ' + error.message;
       });
   });
-
-  /*function fetchRunningJobs() {
-    console.log("Fetching running jobs..."); // Debugging Log
-    fetch(`${BASE_URL}/view-running-jobs`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      cache: 'no-cache'
-    })
-      .then(response => {
-        console.log("Received response:", response.status); // Debugging Log
-        if (!response.ok) throw new Error('Failed to fetch running jobs.');
-        return response.json();
-      })
-      .then(data => {
-        const runningJobSelect = document.getElementById('running-job-select');
-        runningJobSelect.innerHTML = ''; // Clear existing options
-  
-        if (data.runningJobs && data.runningJobs.length > 0) {
-          data.runningJobs.forEach(job => {
-            const option = document.createElement('option');
-            option.value = `${job.staffName}|${job.jobId}`;
-            option.textContent = `${job.staffName} - ${job.jobId}`;
-            runningJobSelect.appendChild(option);
-          });
-        } else {
-          const option = document.createElement('option');
-          option.value = '';
-          option.textContent = 'No running jobs';
-          runningJobSelect.appendChild(option);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching running jobs:', error);
-      });
-  }  */
 
   
       updateFilterPlaceholder()
@@ -617,7 +625,13 @@ function fetchRunningJobs() {
           });
 
           console.log("✅ Job dropdown updated.");
-      })
+          $(jobSelect).select2({
+            placeholder: "Search for a job ID",
+            allowClear: true,
+            minimumInputLength: 0
+          });
+        })
+      
       .catch(error => {
           console.error('❌ Error fetching jobs:', error);
       });
@@ -856,43 +870,41 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-finishBtn.addEventListener('click', (event) => {
-  event.preventDefault();
-  const staffName = document.getElementById('staff-select').value;
-  const jobId = document.getElementById('job-select').value;
-
-  if (!staffName || !jobId) {
-      alert('Please select a staff member and a job.');
+  finishBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    const jobId = document.getElementById('job-select').value; // Only jobId is needed
+  
+    if (!jobId) {
+      alert('Please select a job.');
       return;
-  }
-
-  fetch(`${BASE_URL}/finish-job`, {
+    }
+  
+    fetch(`${BASE_URL}/finish-job`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ staffName, jobId }),
-  })
+      body: JSON.stringify({ jobId }), // Send only jobId
+    })
       .then(response => response.json())
       .then(data => {
         console.log(data); // Debug: Inspect the received data
         if (data.message) {
-            const laborCost = (typeof data.laborCost === 'number' && !isNaN(data.laborCost)) 
-                ? data.laborCost.toFixed(2) 
-                : 'N/A';
-            const totalLaborCost = (typeof data.totalLaborCost === 'number' && !isNaN(data.totalLaborCost)) 
-                ? data.totalLaborCost.toFixed(2) 
-                : 'N/A';
-            alert(`Job finished successfully! Labor Cost: $${laborCost}, Total Labor Cost for Job: $${totalLaborCost}`);
+          const laborCost = (typeof data.laborCost === 'number' && !isNaN(data.laborCost)) 
+            ? data.laborCost.toFixed(2) 
+            : 'N/A';
+          const totalLaborCost = (typeof data.totalLaborCost === 'number' && !isNaN(data.totalLaborCost)) 
+            ? data.totalLaborCost.toFixed(2) 
+            : 'N/A';
+          alert(`Job finished successfully! Labor Cost: $${laborCost}, Total Labor Cost for Job: $${totalLaborCost}`);
         } else {
-            alert('Failed to finish the job.');
+          alert('Failed to finish the job.');
         }
-    })
-    
+      })
       .catch(error => {
-          console.error('Error finishing job:', error);
-          alert('Error finishing job: ' + error.message);
+        console.error('Error finishing job:', error);
+        alert('Error finishing job: ' + error.message);
       });
-});
-});
+    });
+  });
 
 
 
@@ -1004,6 +1016,10 @@ function deleteTime(recordId) {
 function loadJobWorkDetails() {
   const jobId = document.getElementById("jobIdInput").value;
 
+  if (!jobId) {
+    document.getElementById("progressContainer").innerHTML = `<p>Please enter a valid Job ID.</p>`;
+    return;
+  }
   // Show loading spinner
   document.getElementById("progressContainer").innerHTML = `
     <div class="loading-spinner"></div>
@@ -1011,8 +1027,13 @@ function loadJobWorkDetails() {
   `;
 
   // Fetch job progress details
-  fetch(`${backendBaseUrl}/get-job-work-details?jobId=${jobId}`)
-    .then(response => response.json())
+  fetch(`${backendBaseUrl}/get-job-work-details?jobId=${encodeURIComponent(jobId)}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch job details: ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.error) {
         document.getElementById("progressContainer").innerHTML = `<p>${data.error}</p>`;
@@ -1028,6 +1049,8 @@ function loadJobWorkDetails() {
         <div class="progress-card">
           <div class="progress-header">Job Progress - ${data.jobId}</div>
           <p class="progress-info"><strong>Estimated Time:</strong> ${totalEstimated} hrs</p>
+          <p class="progress-info"><strong>Status:</strong> ${data.status}</p>
+          <p class="progress-info"><strong>Total Labor Cost:</strong> ${data.totalLaborCost === 'In progress' ? 'In progress' : `$${data.totalLaborCost.toFixed(2)}`}</p>
           <div class="stacked-progress-bar">
       `;
 
@@ -1071,8 +1094,50 @@ function clearFilter1() {
 
 
 
+//Function to display labor cost in toggle menu
+function fetchFinishedJobsLaborCost() {
+  fetch(`${BASE_URL}/get-finished-jobs-labor-cost`)
+      .then(response => response.json())
+      .then(data => {
+          if (data.jobs && data.jobs.length > 0) {
+              populateLaborCostTable(data.jobs);
+              updateLaborCostProgressBar(data.jobs);
+          } else {
+              document.getElementById('laborCostTable').innerHTML = '<tr><td colspan="6">No finished jobs found.</td></tr>';
+          }
+      })
+      .catch(error => {
+          console.error('Error fetching labor costs:', error);
+          document.getElementById('laborCostTable').innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
+      });
+}
 
+function populateLaborCostTable(jobs) {
+  const tableBody = document.querySelector('#laborCostTable tbody');
+  tableBody.innerHTML = '';
 
+  jobs.forEach(job => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+          <td>${job.jobId}</td>
+          <td>${job.customer}</td>
+          <td>${job.drawingNumber}</td>
+          <td>${job.quantity}</td>
+          <td>$${job.totalLaborCost.toFixed(2)}</td>
+          <td class="status-cell ${job.status.toLowerCase()}">${job.status}</td>
+      `;
+      tableBody.appendChild(row);
+  });
+}
+
+function updateLaborCostProgressBar(jobs) {
+  const totalLaborCost = jobs.reduce((sum, job) => sum + job.totalLaborCost, 0);
+  const maxLaborCost = Math.max(...jobs.map(job => job.totalLaborCost));
+
+  const progressBar = document.getElementById('laborCostProgress');
+  progressBar.style.width = `${(totalLaborCost / maxLaborCost) * 100}%`;
+  progressBar.textContent = `Total: $${totalLaborCost.toFixed(2)}`;
+}
 
 
 

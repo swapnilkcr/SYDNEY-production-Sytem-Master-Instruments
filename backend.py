@@ -223,15 +223,22 @@ def get_av_by_stock_code(stock_code):
     except Exception as e:
         print(f"Error fetching AV from STOCKCODE: {e}")
         return None
+    
 def get_job_work_details(job_id):
     """Fetch total hours worked per user for a given job."""
     try:
         conn = sqlite3.connect('clock_in_management.db')
         cursor = conn.cursor()
 
+        # Ensure the Status column exists in the JOBSFINISHED table
+        cursor.execute("PRAGMA table_info(JOBSFINISHED)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'Status' not in columns:
+            cursor.execute("ALTER TABLE JOBSFINISHED ADD COLUMN Status TEXT")
+
         # 1. Check if the job is in the JOBSFINISHED table
         cursor.execute('''
-            SELECT EstimatedTime, RemainingTime 
+            SELECT EstimatedTime, RemainingTime, TotalLaborCost, Status
             FROM JOBSFINISHED 
             WHERE PN = ?
         ''', (job_id,))
@@ -241,10 +248,14 @@ def get_job_work_details(job_id):
             # If job is finished, use stored values
             estimated_time = finished_job_data[0]
             remaining_time = finished_job_data[1]
+            total_labor_cost = finished_job_data[2]
+            status = finished_job_data[3] if finished_job_data[3] else 'Finished'
         else:
             # If job is active, calculate estimated and remaining time
             estimated_time = calculate_estimated_time(job_id)
             remaining_time = max(estimated_time - get_total_hours_worked(job_id), 0.0)
+            total_labor_cost = 'In progress'
+            status = 'Active'
 
         # 2. Fetch total hours worked per user
         cursor.execute('''
@@ -277,7 +288,9 @@ def get_job_work_details(job_id):
             'estimatedTime': estimated_time,
             'users': users,
             'remainingTime': remaining_time,
-            'totalHoursWorked': total_worked
+            'totalHoursWorked': total_worked,
+            'totalLaborCost': total_labor_cost,
+            'status': status
         }
 
     except Exception as e:
@@ -288,8 +301,11 @@ def get_job_work_details(job_id):
             'estimatedTime': 0.0,
             'users': [],
             'remainingTime': 0.0,
-            'totalHoursWorked': 0.0
+            'totalHoursWorked': 0.0,
+            'totalLaborCost': 'Unknown',
+            'status': 'Unknown'
         }
+
 
 
 
@@ -437,25 +453,28 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 cursor = conn.cursor()
 
                 # Base query
+                # In the /view-times endpoint's SQL query, modify to:
                 base_query = '''
                 SELECT 
-                    c.RecordID, 
-                    c.StaffName, 
-                    c.JobID, 
-                    c.StartTime, 
-                    c.StopTime, 
-                    c.LaborCost, 
-                    j.CUST AS CustomerName, 
-                    j."DRAW NO" AS DrawingNumber, 
-                    j."NO/CELL" AS CellNo, 
+                    c.RecordID,
+                    c.StaffName,
+                    c.JobID,
+                    c.StartTime,
+                    c.StopTime,
+                    c.LaborCost,
+                    j.CUST AS CustomerName,
+                    j."DRAW NO" AS DrawingNumber,
+                    j."NO/CELL" AS CellNo,
                     j.QTY AS Quantity,
                     j."REQU-DATE" AS RequestDate,
                     COALESCE(j.AV * j.QTY, 0.0) AS EstimatedTime,
                     ROUND(COALESCE(
                         (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
-                    ), 2) AS TotalHoursWorked
+                    ), 2) AS TotalHoursWorked,
+                    CASE WHEN f.PN IS NOT NULL THEN 'Finished' ELSE 'Active' END AS Status
                 FROM ClockInOut c
                 LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                LEFT JOIN JOBSFINISHED f ON c.JobID = f.PN
                 '''
 
                 # Filter mapping
@@ -511,7 +530,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'jobId': row[2],
                         'startTime': row[3] or 'NA',
                         'stopTime': row[4] if row[4] else "In Progress",
-                        'laborCost': row[5] if row[5] is not None else "N/A",
+                        'laborCost': row[5] if row[5] is not None else 0.0,
                         'customerName': row[6] or " ",
                         'drawingNumber': row[7] or " ",
                         'cellNo': row[8] or " ",
@@ -519,7 +538,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         'requDate': row[10],
                         'estimatedTime': float(row[11]),
                         'totalHoursWorked': float(row[12]),
-                        'remainingTime': max(float(row[11]) - float(row[12]), 0.0)
+                        'remainingTime': max(float(row[11]) - float(row[12]), 0.0),
+                        'status' : row[13]
                     }
                     records.append(record)
 
@@ -711,6 +731,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.set_cors_headers()
             #self.send_header('Cache-Control', 'no-store')  #Prevents caching
             self.end_headers()
+
+
+        
 
     
 
@@ -1135,109 +1158,106 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
      #Finish job       
     def handle_finish_job(self):
-        
-
-        hourly_rate = 25.0  # Fixed hourly labor cost
-        content_length = int(self.headers.get('Content-Length', 0))
-        post_data = self.rfile.read(content_length)
-        data = json.loads(post_data.decode('utf-8'))
-
-        staff_name = data.get('staffName')
-        job_id = data.get('jobId')
-
-        if not staff_name or not job_id:
-            self.send_response(400)
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Invalid data provided.'}).encode('utf-8'))
-            return
-        conn = None  # Initialize connection outside try block
+        conn = None
         try:
-            # Connect to the database
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            
+            job_id = data.get('jobId')
+            hourly_rate = 25.0  # Consider storing this in a config table
+
+            if not job_id:
+                self.send_response(400)
+                self.set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Missing staffName or jobId'}).encode())
+                return
+
             conn = sqlite3.connect('clock_in_management.db')
             cursor = conn.cursor()
 
-            # Fetch start and stop times
+            # Ensure all entries for this job are closed
             cursor.execute('''
-            SELECT StartTime, StopTime 
-            FROM ClockInOut 
-            WHERE StaffName = ? AND JobID = ? AND StopTime IS NOT NULL
-            ''', (staff_name, job_id))
-            record = cursor.fetchone()
+                UPDATE ClockInOut 
+                SET StopTime = COALESCE(StopTime, ?)
+                WHERE JobID = ? AND StopTime IS NULL
+            ''', (get_current_timestamp(), job_id))
 
-            if not record:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Job not found or still in progress.'}).encode('utf-8'))
-                return
-
-            start_time, stop_time = record
-            total_hours = (datetime.strptime(stop_time, '%Y-%m-%d %H:%M:%S') -
-                        datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')).total_seconds() / 3600
-
-            labor_cost = total_hours * hourly_rate
-
-            # Update the ClockInOut table with labor cost and job status
+            # Calculate labor costs for all entries
             cursor.execute('''
-            UPDATE ClockInOut
-            SET Status = 'completed', LaborCost = ?
-            WHERE StaffName = ? AND JobID = ?
-            ''', (labor_cost, staff_name, job_id))
-
-            # Calculate the total labor cost for the job
-            cursor.execute('''
-            SELECT SUM(LaborCost) 
-            FROM ClockInOut 
-            WHERE JobID = ?
+                SELECT StaffName, StartTime, StopTime 
+                FROM ClockInOut 
+                WHERE JobID = ?
             ''', (job_id,))
-            total_labor_cost = cursor.fetchone()[0] or 0
-
-                # Calculate Estimated Time
-            estimated_time = calculate_estimated_time(job_id)
             
 
+            total_labor_cost = 0.0
+            time_entries = cursor.fetchall()
+            
+            for staff_name ,start_time, stop_time in time_entries:
+                try:
+                    start_dt = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+                    stop_dt = datetime.strptime(stop_time, '%Y-%m-%d %H:%M:%S') if stop_time else datetime.now()
+                    hours = (stop_dt - start_dt).total_seconds() / 3600
+                    labor_cost = round(hours * hourly_rate, 2)
+                    
+                    # Update individual record
+                    cursor.execute('''
+                        UPDATE ClockInOut
+                        SET LaborCost = ?
+                        WHERE StaffName = ? AND JobID = ? AND StartTime = ?
+                    ''', (labor_cost, staff_name, job_id, start_time))
+                    
+                    total_labor_cost += labor_cost
+                    
+                except Exception as e:
+                    print(f"Error processing entry {start_time}-{stop_time}: {str(e)}")
+                    continue
 
-            # Calculate Total Hours Worked
-            total_hours_worked = get_total_hours_worked(job_id)
-            remaining_time = max(estimated_time - total_hours_worked, 0.0)
-            # Insert or update the total labor cost in JobTable
+            # Update job metadata
+            estimated_time = round(calculate_estimated_time(job_id),2)
+            total_hours_worked = round(get_total_hours_worked(job_id),2)
+            remaining_time = round(max(estimated_time - total_hours_worked, 0.0),2)
+
             cursor.execute('''
-            INSERT INTO JobTable (JobID, TotalLaborCost,EstimatedTime,TotalHoursWorked,RemainingTime)
-            VALUES (?, ?)
-            ON CONFLICT(JobID) DO UPDATE SET 
-            TotalLaborCost = excluded.TotalLaborCost,
-            EstimatedTime = excluded.EstimatedTime,
-            TotalHoursWorked = excluded.TotalHoursWorked,
-            RemainingTime = excluded.RemainingTime             
-            ''', (job_id, total_labor_cost,estimated_time,total_hours_worked,remaining_time))
+                INSERT OR REPLACE INTO JobTable 
+                (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime,Status)
+                VALUES (?, ?, ?, ?, ?,'Finished')
+            ''', (job_id, total_labor_cost, estimated_time, total_hours_worked, remaining_time))
 
             conn.commit()
-            conn.close()
-
-            # Send a success response
+            
             self.send_response(200)
+            self.set_cors_headers()
+            self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({
-                'message': 'Job finished successfully.',
-                'laborCost': labor_cost,
+                'message': 'Job finalized successfully',
                 'totalLaborCost': total_labor_cost,
-                'estimatedTime': estimated_time,
-                'totalHoursWorked': total_hours_worked
-            }).encode('utf-8'))
+                'totalHours': total_hours_worked,
+                'remainingTime': remaining_time
+            }).encode())
 
-        except sqlite3.Error as db_error:
+        except sqlite3.Error as e:
+            print(f"Database error: {str(e)}")
+            if conn: conn.rollback()
             self.send_response(500)
             self.set_cors_headers()
             self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Database error: ' + str(db_error)}).encode('utf-8'))
-
+            self.wfile.write(json.dumps({'error': 'Database operation failed'}).encode())
+            
         except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            if conn: conn.rollback()
             self.send_response(500)
             self.set_cors_headers()
             self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Unexpected error: ' + str(e)}).encode('utf-8'))
-
+            self.wfile.write(json.dumps({'error': 'Internal server error'}).encode())
+            
         finally:
-            if conn:  # Close only once, here
+            if conn: 
                 conn.close()
 
 

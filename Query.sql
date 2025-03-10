@@ -312,6 +312,8 @@ INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, Re
 SELECT PN, 0, 0, 0, 0 FROM PN_DATA WHERE PN NOT IN (SELECT JobID FROM JobTable);
 
 
+Select * from JobTable;
+select * from ClockInOut;
 
-
+ALTER TABLE JobTable ADD COLUMN Status TEXT
 
