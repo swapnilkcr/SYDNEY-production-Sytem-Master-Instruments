@@ -898,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           alert('Failed to finish the job.');
         }
+        window.location.reload(); // Refresh the page
       })
       .catch(error => {
         console.error('Error finishing job:', error);
