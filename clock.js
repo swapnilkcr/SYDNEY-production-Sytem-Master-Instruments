@@ -328,6 +328,13 @@ function populateTable(records) {
   
   records.forEach(record => {
       const row = document.createElement('tr');
+
+
+      // Add highlight class if needed
+      if (isDateNearOrPassed(record.requDate)) {
+        row.classList.add('highlight-row');
+      }
+      
       // Add class based on status
       if (record.status === 'Finished') {
           row.classList.add('finished-job');
@@ -343,6 +350,7 @@ function populateTable(records) {
           <td>${record.cellNo}</td>
           <td>${record.quantity}</td>
           <td>${record.customerName}</td>
+          <td>${formatDateTime(record.requDate)}</td>
           <td>${formatDateTime(record.startTime)}</td>
           <td>${formatDateTime(record.stopTime)}</td>
           <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
@@ -1143,8 +1151,15 @@ function updateLaborCostProgressBar(jobs) {
 
 
 
-
-
+// Date overdue check
+function isDateNearOrPassed(requDate) {
+  if (!requDate) return false;
+  const today = new Date();
+  const reqDate = new Date(requDate);
+  const diffTime = reqDate - today;
+  const diffDays = Math.ceil(diffTime / (86400000)); // 86400000 ms per day
+  return diffDays <= 3; // Highlight if within 3 days or past
+}
 
 
 

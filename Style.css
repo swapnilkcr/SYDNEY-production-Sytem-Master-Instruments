@@ -192,8 +192,8 @@ select#staff-select {
 #records-table  th {
   background-color: #003865 !important;
   color: white;
-  font-size: 20px;
-  font-family: arial;
+  font-size: 15px;
+  font-family: sans-serif;
   font-weight: 300;
 }
 
@@ -1121,3 +1121,9 @@ tr.finished-job:hover {
     color: #d32f2f;
 }
 
+
+
+/* color highlighting overdue jobs */
+.highlight-row {
+  background-color: orange !important;
+}
