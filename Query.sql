@@ -314,6 +314,16 @@ SELECT PN, 0, 0, 0, 0 FROM PN_DATA WHERE PN NOT IN (SELECT JobID FROM JobTable);
 
 Select * from JobTable;
 select * from ClockInOut;
-
+select * from PN_DATA;
 ALTER TABLE JobTable ADD COLUMN Status TEXT
 
+Update PN_DATA SET "REQU-DATE" = '2025-03-25' WHERE PN = '322118';
+PRAGMA table_info(PN_DATA);
+
+
+
+.tables
+delete from ClockInOut;
+select * from ClockInOut;
+Delete from JobTable;
+Delete from JobsFinished;

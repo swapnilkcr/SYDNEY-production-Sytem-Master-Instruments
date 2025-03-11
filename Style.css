@@ -195,6 +195,15 @@ select#staff-select {
   font-size: 15px;
   font-family: sans-serif;
   font-weight: 300;
+  padding:8px;
+  text-align:left;
+}
+
+#records-table td {
+  font-size: 15px;
+  padding: 8px;
+  text-align: left;
+  border: 1px solid black;
 }
 
 /*tr:nth-child(even) {
@@ -808,7 +817,7 @@ input#pn-search {
 
 button.row-btn1 {
   color: white;
-  background-color: #6495ed !important;
+  background-color:#003865 !important;
   border: none;
   padding: 5px;
   border-radius: 5px;
@@ -1087,17 +1096,12 @@ button#next-page {
 
 /* Styling for finished-jobs in view-times table */
 /* Add status column styling */
-#records-table th:nth-child(13),
+/*#records-table th:nth-child(13),
 #records-table td:nth-child(13) {
     font-weight: bold;
     text-align: center;
-}
+}*/
 
-/* Row highlighting */
-tr.finished-job {
-    background-color: lightgreen !important; /* Light green background */
-    border-left: 4px solid #2e7d32;       /* Dark green accent border */
-}
 
 tr.finished-job td {
     position: relative;
@@ -1113,7 +1117,7 @@ tr.finished-job:hover {
     font-size: 0.9em;
 }
 
-#records-table td:nth-child(13):contains("Finished") {
+#records-table td:nth-child(6):contains("Finished") {
     color: #2e7d32;
 }
 
@@ -1123,7 +1127,58 @@ tr.finished-job:hover {
 
 
 
-/* color highlighting overdue jobs */
-.highlight-row {
-  background-color: orange !important;
+
+
+/*select-job overdue highlight styling */
+.select2-results__option.date-warning {
+  color: red !important;
+  font-weight: bold !important;
+}
+
+
+
+/*expanded table */
+/* Default row styling */
+#records-table tbody tr {
+  cursor: pointer;
+}
+
+/* Highlight for finished jobs */
+.finished-job {
+  background-color: green; /* Light green background */
+}
+
+/* Highlight for near/past due jobs in default row */
+.date-warning {
+  background-color: orange; /* Light red background */
+  font-weight: bold;
+}
+
+/* Highlight for near/past due jobs in expanded row */
+.due-warning {
+  background-color: orange !important; /* Light orange background */
+}
+
+/* Expanded row styling */
+.expanded-row {
+  background-color: #f9f9f9;
+}
+
+.inner-table {
+  width: 100%;
+  margin: 10px 0;
+  border-collapse: collapse;
+}
+
+.inner-table td, .inner-table th {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color:white;
 }

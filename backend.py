@@ -356,13 +356,15 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 cursor = conn.cursor()
 
                 # Fetch all job details from PN_DATA
-                cursor.execute("SELECT PN, CUST FROM PN_DATA")
+                cursor.execute("SELECT PN, CUST, \"REQU-DATE\" FROM PN_DATA")
                 jobs = cursor.fetchall()
 
                 conn.close()
 
                 # Convert results into JSON format
-                job_records = [{'jobId': row[0], 'customer': row[1]} for row in jobs]
+                job_records = [{'jobId': row[0],
+                                'customer': row[1],
+                                'requiredDate' : row[2]} for row in jobs]
 
                 self.send_response(200)
                 self.set_cors_headers()
@@ -585,9 +587,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
                 # Query for jobs with StopTime IS NULL
                 cursor.execute("""
-                    SELECT StaffName, JobID, StartTime
-                    FROM ClockInOut
-                    WHERE StopTime IS NULL
+                    SELECT c.StaffName, c.JobID, j.CUST, c.StartTime
+                    FROM ClockInOut c
+                    LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                    WHERE c.StopTime IS NULL
                 """)
                 rows = cursor.fetchall()
                 print(f"Running jobs fetched: {rows}")  # This will show the data in the server logs
@@ -601,7 +604,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     running_jobs.append({
                         'staffName': row[0],
                         'jobId': row[1],
-                        'startTime': row[2],
+                        'customerName': row[2] or 'N/A',
+                        'startTime': row[3],
                     })
 
                 # Send response
@@ -610,7 +614,6 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 #self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
-
                 response = {'runningJobs': running_jobs}
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 

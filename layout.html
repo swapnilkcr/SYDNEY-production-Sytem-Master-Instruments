@@ -387,15 +387,7 @@ function searchAV() {
             <option value="0">Staff Name</option>
             <option value="1">Job ID</option>
             <option value="2">Drawing Number</option>
-            <option value="3">No/Cell</option>
-            <option value="4">Quantity</option>
             <option value="5">Customer Name</option>
-            <option value="6">Start Time</option>
-            <option value="7">Stop Time</option>
-            <option value="8">Total Hours</option>
-            <option value="9">Estimated Time</option>
-            <option value="10">Remaining Time</option>
-            <option value="11">Labor Cost</option>
           </select>
           <input type="text" id="filter-input" placeholder="Type to filter...">
           <button class="clear-filters" id="clear-filters">Clear</button>
@@ -408,25 +400,17 @@ function searchAV() {
           <tr>
             <th>Staff Name</th>
             <th>Job ID</th>
-            <th>Drawing Number</th>
-            <th>No/Cell</th>
-            <th>Quantity</th>
-            <th>CUSTOMER NAME</th>
-            <th>Required Date</th>
+            <th>Customer</th>
             <th>Start Time</th>
             <th>Stop Time</th>
-            <th>Total hours worked</th>
-            <th>Estimated Time (hrs)</th>
-            <th>Remaining Time</th>
-            <th>Labor Cost</th>
             <th>Status</th>
-            <th>Modify</th>
-            
+            <th>Expand</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Data rows will be added dynamically -->
+          <!-- Rows will be populated dynamically -->
         </tbody>
+      </table>
       </table>
       <div id="pagination-controls">
       <button id="prev-page" disabled>Previous</button>

@@ -209,7 +209,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         console.error('Error starting the job:', error);
         messageDiv.textContent = `Error starting the job: ${error.message}`;
       });
-
     console.log('Active sessions after start:', activeSessions);
   });
 
@@ -325,50 +324,80 @@ function fetchRecords() {
 function populateTable(records) {
   const tableBody = document.querySelector('#records-table tbody');
   tableBody.innerHTML = '';
-  
+
   records.forEach(record => {
-      const row = document.createElement('tr');
+    // Default row (limited columns)
+    const isNearOrPastDue = isDateNearOrPassed1(record.requDate);
+    // Check if the job is finished
+    const isFinished = record.status === 'Finished';
+    const defaultRow = document.createElement('tr');
+    if (isNearOrPastDue) {
+      defaultRow.classList.add('date-warning'); // Add highlight class
+    }
+    if (isFinished) {
+      defaultRow.classList.add('finished-job'); // Add green background for finished jobs
+    }
 
+    defaultRow.innerHTML = `
+      <td>${record.staffName}</td>
+      <td>${record.jobId}</td>
+      <td>${record.customerName}</td>
+      <td>${record.startTime}</td>
+      <td>${record.stopTime || 'In Progress'}</td>
+      <td>${record.status || 'Active'}</td>
+      <td>
+        <button class="expand-btn" onclick="toggleExpand(this)">+</button>
+      </td>
+    `;
 
-      // Add highlight class if needed
-      if (isDateNearOrPassed(record.requDate)) {
-        row.classList.add('highlight-row');
-      }
-      
-      // Add class based on status
-      if (record.status === 'Finished') {
-          row.classList.add('finished-job');
-      }
-      
-      const laborCost = typeof record.laborCost === 'number' ? 
-          `$${record.laborCost.toFixed(2)}` : 'N/A';
+    // Expanded row (full details)
+    const expandedRow = document.createElement('tr');
+    expandedRow.classList.add('expanded-row');
+    expandedRow.style.display = 'none'; // Hidden by default
+    if (isDateNearOrPassed1(record.requDate)) {
+      expandedRow.classList.add('due-warning'); // Add highlight class
+    }
 
-      row.innerHTML = `
-          <td>${record.staffName}</td>
-          <td>${record.jobId}</td>
-          <td>${record.drawingNumber}</td>
-          <td>${record.cellNo}</td>
-          <td>${record.quantity}</td>
-          <td>${record.customerName}</td>
-          <td>${formatDateTime(record.requDate)}</td>
-          <td>${formatDateTime(record.startTime)}</td>
-          <td>${formatDateTime(record.stopTime)}</td>
-          <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
-          <td>${record.estimatedTime.toFixed(2)} hrs</td>
-          <td>${record.remainingTime.toFixed(2)} hrs</td>
-          <td>${laborCost}</td>
-          <td class="status-cell">${record.status || 'Active'}</td>
-      
-          ${localStorage.getItem('userRole') === 'admin' ? `
+    if (isFinished) {
+      expandedRow.classList.add('finished-job'); // Add green background for finished jobs
+    }
+    expandedRow.innerHTML = `
+      <td colspan="4">
+        <table class="inner-table">
+          <tr>
+            <th>Drawing Number</th>
+            <th>No/Cell</th>
+            <th>Quantity</th>
+            <th>Required Date</th>
+            <th>Total Hours Worked</th>
+            <th>Estimated Time</th>
+            <th>Remaining Time</th>
+            <th>Labor Cost</th>
+            <th>Modify </th>
+          </tr>
+          <tr>
+            <td>${record.drawingNumber || 'N/A'}</td>
+            <td>${record.cellNo || 'N/A'}</td>
+            <td>${record.quantity || 'N/A'}</td>
+            <td>${formatDateTime(record.requDate) || 'N/A'}</td>
+            <td>${record.totalHoursWorked.toFixed(2)} hrs</td>
+            <td>${record.estimatedTime.toFixed(2)} hrs</td>
+            <td>${record.remainingTime.toFixed(2)} hrs</td>
+            <td>$${record.laborCost.toFixed(2)}</td>
+                ${localStorage.getItem('userRole') === 'admin' ? `
               <td>
                   <button class="row-btn1" onclick="editTime('${record.recordId}', '${record.startTime}', '${record.stopTime}')">Edit</button>
                   <button class="row-btn2" onclick="deleteTime('${record.recordId}')">Delete</button>
               </td>
           ` : '<td></td>'}
       `;
-      tableBody.appendChild(row);
+
+    tableBody.appendChild(defaultRow);
+    tableBody.appendChild(expandedRow);
   });
 }
+
+
 
 
 //Move finished Jobs
@@ -538,33 +567,45 @@ function fetchRunningJobs() {
     .then(data => {
       console.log("Running Jobs Data:", data);
       if (data.runningJobs && data.runningJobs.length > 0) {
-        recordsTable.style.display = 'block';  
+        recordsTable.style.display = 'block';
+        // Update table headers
+        const thead = recordsTable.querySelector('thead');
+        thead.innerHTML = `
+          <tr>
+            <th>Staff Name</th>
+            <th>Job ID</th>
+            <th>Customer</th>
+            <th>Start Time</th>
+            <th>Stop Time</th>
+            <th>Status</th>
+            <th>Expand</th>
+          </tr>
+        `;
+  
         data.runningJobs.forEach(job => {
           const row = document.createElement('tr');
-
           const formattedDate = new Date(job.startTime).toLocaleDateString('en-GB', {
             year: 'numeric',
             month: 'long',
             day: '2-digit',
           });
-
+  
           const formattedTime = new Date(job.startTime).toLocaleTimeString('en-GB', {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             hour12: false,
           });
-
+  
           row.innerHTML = `
             <td>${job.staffName}</td>
             <td>${job.jobId}</td>
+            <td>${job.customerName}</td>
             <td>${formattedDate} ${formattedTime}</td>
           `;
           tableBody.appendChild(row);
         });
-        messageDiv.textContent = '';  
-      } else {
-        messageDiv.textContent = 'No running jobs found.';
+        messageDiv.textContent = '';
       }
     })
     .catch(error => {
@@ -576,73 +617,106 @@ function fetchRunningJobs() {
     });
 }
 
+//Fetch JOBS
   let fetchJobsCalled = false;
   let cachedJobs = null; // Store fetched jobs
   function fetchJobs() {
     console.log("🔍 fetchJobs() called at:", new Date().toISOString());  // Track every call
-
     if (fetchJobsCalled) {
-
           console.warn("⚠️ fetchJobs() already called! Skipping.");
           return;
     }
       fetchJobsCalled = true; // Mark function as called
-
       console.log("🔍 fetchJobs() called");
-
       const jobSelect = document.getElementById('job-select');
       if (!jobSelect) {
           console.error('❌ Error: jobSelect element not found.');
           return;
       }
-
       console.log("✅ Found jobSelect element.");
       console.log("🚀 Fetching jobs from backend...");
-
-
       fetch(`${BASE_URL}/get-jobs`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         })
       .then(response => {
           console.log("🔄 Fetch response status:", response.status);
-
           if (response.redirected) {
               console.warn("⚠️ Redirect detected! This may be causing a loop.");
               return;
           }
-
           return response.json();
       })
       .then(data => {
-          console.log("✅ Fetch response received:", data);
-
-          if (!data || !data.jobs || data.jobs.length === 0) {
-              console.warn('⚠️ No job data available.');
-              return;
+        if (!data || !data.jobs || data.jobs.length === 0) return;
+  
+        jobSelect.innerHTML = '<option value="">-- Select Job --</option>';
+  
+        data.jobs.forEach(job => {
+          const option = document.createElement('option');
+          option.value = job.jobId;
+          
+          // Add custom message for near/past due dates
+          const message = getDueDateMessage(job.requiredDate);
+          option.textContent = `${job.jobId} - ${job.customer} ${message}`;
+          option.dataset.requiredDate = job.requiredDate;
+  
+          // Highlight in red if near/past due
+          if (message) {
+            option.classList.add('date-warning');
           }
-
-          jobSelect.innerHTML = '<option value="">-- Select Job --</option>'; // Clear existing options
-
-          data.jobs.forEach(job => {
-              console.log(`📌 Adding job: ${job.jobId}`);
-              const option = document.createElement('option');
-              option.value = job.jobId;
-              option.textContent = `${job.jobId} - ${job.customer}`;
-              jobSelect.appendChild(option);
-          });
-
-          console.log("✅ Job dropdown updated.");
-          $(jobSelect).select2({
-            placeholder: "Search for a job ID",
-            allowClear: true,
-            minimumInputLength: 0
-          });
-        })
-      
-      .catch(error => {
-          console.error('❌ Error fetching jobs:', error);
-      });
+  
+          jobSelect.appendChild(option);
+        });
+  
+        // Update Select2 with styling
+        $(jobSelect).select2({
+          placeholder: "Search for a job ID",
+          allowClear: true,
+          minimumInputLength: 0,
+          templateResult: formatJobOption
+        });
+      })
+      .catch(error => console.error('Error fetching jobs:', error));
+  }
+  
+  // Helper function to calculate due date message
+  function getDueDateMessage(requDate) {
+    if (!requDate) return '';
+  
+    // Extract date part and parse as UTC
+    const dateStr = requDate.split(' ')[0]; // Get "YYYY-MM-DD"
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const reqDateUTC = Date.UTC(year, month - 1, day); // Months are 0-based
+  
+    // Get today's date in UTC at midnight
+    const todayUTC = new Date();
+    todayUTC.setUTCHours(0, 0, 0, 0);
+    const todayTimeUTC = todayUTC.getTime();
+  
+    // Calculate difference in days
+    const diffTime = reqDateUTC - todayTimeUTC;
+    const diffDays = Math.floor(diffTime / 86400000); // 86400000 ms/day
+  
+    // Return custom message based on due date
+    if (diffDays === 3) {
+      return '(3 days from today)';
+    } else if (diffDays < 0) {
+      return '(past due date)';
+    } else {
+      return '';
+    }
+  }
+  
+  // Helper function to format job options in Select2
+  function formatJobOption(option) {
+    if (!option.id) return option.text;
+  
+    const $option = $(
+      `<span style="${$(option.element).hasClass('date-warning') ? 
+        'color: red; font-weight: bold;' : ''}">${option.text}</span>`
+    );
+    return $option;
   }
 
 
@@ -1151,8 +1225,8 @@ function updateLaborCostProgressBar(jobs) {
 
 
 
-// Date overdue check
-function isDateNearOrPassed(requDate) {
+// Date overdue check highlights in orange in records table
+function isDateNearOrPassed1(requDate) {
   if (!requDate) return false;
   const today = new Date();
   const reqDate = new Date(requDate);
@@ -1162,9 +1236,37 @@ function isDateNearOrPassed(requDate) {
 }
 
 
+// Add to existing date check functions in select job dropdown
+function isDateNearOrPassed(requDate) {
+  if (!requDate) return false;
+  const dateOnly = requDate.split(' ')[0]; // Extracts date part only
+  const reqDate = new Date(dateOnly);
+  const today = new Date();
+  
+  // Sets both dates to midnight for accurate day comparison
+  today.setHours(0, 0, 0, 0);
+  reqDate.setHours(0, 0, 0, 0);
+
+  const diffTime = reqDate - today;
+  const diffDays = Math.ceil(diffTime / (86400000));
+  return diffDays <= 7; // Highlight if within 5 days or past
+}
 
 
 
+// Toggle expand/collapse
+function toggleExpand(button) {
+  const row = button.closest('tr');
+  const expandedRow = row.nextElementSibling;
+
+  if (expandedRow.style.display === 'none') {
+    expandedRow.style.display = 'table-row';
+    button.textContent = '-';
+  } else {
+    expandedRow.style.display = 'none';
+    button.textContent = '+';
+  }
+}
 
 
 
