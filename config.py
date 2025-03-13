@@ -25,6 +25,7 @@ ENV = os.getenv('ENV', 'test')
 PORT = int(os.getenv('PORT', 3003))  # Default to test backend port
 FRONTEND_PORT = 3004 if ENV == 'test' else 3001
 BASE_URL = os.getenv('BASE_URL', f'http://{local_ip}:{PORT}')
+DB_NAME = os.getenv('DB_NAME', 'clock_in_management.db')
 
 print(f"Loaded environment: {ENV}")
 print(f"Backend running on: {BASE_URL}")

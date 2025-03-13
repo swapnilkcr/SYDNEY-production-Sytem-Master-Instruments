@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('pagination-controls').style.display = 'none';
     
     let currentPage = 1;
-    const pageSize = 10;
+    const pageSize = 5;
     let currentFilters = {
         column: 'all',
         value: ''

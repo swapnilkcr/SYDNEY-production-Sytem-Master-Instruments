@@ -714,9 +714,10 @@ li.select2-results__option.select2-results__message {
 
 .finished-jobs-table th,
 .finished-jobs-table td {
-  padding: 8px;
+  padding: 5px;
   border: 1px solid #ddd;
-  text-align: left;
+  font-size: 15px;
+  font-family: serif;
 }
 
 .finished-jobs-table th {

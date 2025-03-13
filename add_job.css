@@ -67,7 +67,7 @@
   /* FORM CSS */
   .form1 {
     margin:50px;
-    width: 100%; /* Full width */
+    width: 800px; /* Full width */
     max-width: 1000px; /* Limit the width */
     padding: 15px;
     background-color: #fff;
@@ -79,7 +79,7 @@
   
   form {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     justify-content: space-between;
     width: 100%;
   }
@@ -94,7 +94,7 @@
   input[type="text"],
   input[type="number"],
   input[type="date"] {
-    width: 48%; /* Fields take up almost half the space */
+    width: 100%; /* Fields take up almost half the space */
     padding: 10px;
     margin-bottom: 16px;
     border: 1px solid #ccc;
@@ -103,7 +103,7 @@
   }
   
   input[type="number"] {
-    width: 48%;
+    width: 100%;
   }
   
   button {

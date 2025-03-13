@@ -21,7 +21,7 @@ from io import BytesIO
 import sqlite3
 from datetime import datetime
 import json
-
+from config import DB_NAME
 
 
 print(f"🚀 Environment: {ENV}")
@@ -58,7 +58,7 @@ def commit_with_retry(conn, max_retries=5, delay=1):
     raise sqlite3.OperationalError("Commit failed after multiple retries")
 
 
-DB_NAME = 'clock_in_management.db'
+#DB_NAME = 'clock_in_management.db'
 
 
 
@@ -152,7 +152,7 @@ def calculate_estimated_time(job_id):
        
 # Calculate Total Hours Worked by all users for a job
 def get_total_hours_worked(job_id):
-    conn = sqlite3.connect('clock_in_management.db')
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('''
         SELECT COALESCE(SUM(
@@ -227,7 +227,7 @@ def get_av_by_stock_code(stock_code):
 def get_job_work_details(job_id):
     """Fetch total hours worked per user for a given job."""
     try:
-        conn = sqlite3.connect('clock_in_management.db')
+        conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
 
         # Ensure the Status column exists in the JOBSFINISHED table
@@ -406,7 +406,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             
         elif self.path == '/get-totallaborcost':
             try:
-                conn = sqlite3.connect('clock_in_management.db')
+                conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
 
                 # Query to fetch Job IDs and their total labor costs
@@ -451,7 +451,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 filter_column = query_params.get('filter_column', ['all'])[0]
                 filter_value = query_params.get('filter_value', [''])[0].lower()
                 
-                conn = sqlite3.connect('clock_in_management.db')
+                conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
 
                 # Base query
@@ -587,7 +587,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         elif self.path == '/view-running-jobs':
             # Fetch running jobs
             try:
-                conn = sqlite3.connect('clock_in_management.db')
+                conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
 
                 # Query for jobs with StopTime IS NULL
@@ -767,7 +767,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             start_time_str = data['startTime']
             stop_time_str = data['stopTime']
 
-            conn = sqlite3.connect('clock_in_management.db')
+            conn = sqlite3.connect(DB_NAME)
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO ClockInOut (StaffName, JobID, StartTime, StopTime)
@@ -798,7 +798,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 start_time = get_current_timestamp()  # Get the current timestamp
 
 
-                conn = sqlite3.connect('clock_in_management.db')
+                conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
                 cursor.execute('''
                     INSERT INTO ClockInOut (StaffName, JobID, StartTime, StopTime)
@@ -1183,7 +1183,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error': 'Missing staffName or jobId'}).encode())
                 return
 
-            conn = sqlite3.connect('clock_in_management.db')
+            conn = sqlite3.connect(DB_NAME)
             cursor = conn.cursor()
 
             # Ensure all entries for this job are closed
@@ -1317,12 +1317,12 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 labor_cost, estimated_time, total_hours_worked, remaining_time = job_metrics
 
                 if estimated_time == 0:
-                    estimated_time = calculate_estimated_time(job_id)
+                    estimated_time = round(calculate_estimated_time(job_id),2)
 
                 if total_hours_worked == 0:
                     total_hours_worked = get_total_hours_worked(job_id)
 
-                remaining_time = max(estimated_time - total_hours_worked, 0.0)
+                remaining_time = round(max(estimated_time - total_hours_worked, 0.0),2)
 
                 print(f"📊 Moving job {job_id} -> LaborCost: {labor_cost}, Estimated: {estimated_time}, "
                     f"TotalWorked: {total_hours_worked}, Remaining: {remaining_time}")

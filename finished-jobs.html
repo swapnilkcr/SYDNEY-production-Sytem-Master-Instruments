@@ -24,9 +24,9 @@
     }
 
     #custName {
-      padding: 10px;
+      padding: 10px !important; 
       width: 300px;
-      font-size: 16px;
+      font-size: 15px !important;
       border: 2px solid #333;
       border-radius: 5px;
     }
@@ -119,10 +119,17 @@ div#finished-jobs-container {
     <table id="jobsTable">
     </table>
   </div>
+  <div class="pagination">
+    <button id="prevPage" onclick="prevPage()">Previous</button>
+    <span id="pageNumber">Page 1</span>
+    <button id="nextPage" onclick="nextFinishedPage()">Next</button>
+  </div>
 
   <script src="clock.js"></script>
   <script>
 
+    let currentPage1 = 1;
+    const pageSize = 10; // Add this line at the top of your script
 
     function renderTable() {
       const tableBody = document.querySelector("#jobsTable tbody");
