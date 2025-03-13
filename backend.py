@@ -473,10 +473,15 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     ROUND(COALESCE(
                         (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
                     ), 2) AS TotalHoursWorked,
-                    CASE WHEN f.PN IS NOT NULL THEN 'Finished' ELSE 'Active' END AS Status
+                    CASE 
+                    WHEN jt.Status = 'Finished' THEN 'Finished'
+                    WHEN f.Status = 'Completed' THEN 'Completed'
+                    ELSE 'Active'
+                    END AS Status
                 FROM ClockInOut c
                 LEFT JOIN PN_DATA j ON c.JobID = j.PN
                 LEFT JOIN JOBSFINISHED f ON c.JobID = f.PN
+                LEFT JOIN JobTable jt ON c.JobID = jt.JobID  
                 '''
 
                 # Filter mapping
@@ -1341,8 +1346,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 column_names = [f'"{col[1]}"' for col in cursor.execute("PRAGMA table_info(PN_DATA)")]
                 insert_query = f"""
                     INSERT INTO JOBSFINISHED ({', '.join(column_names)}, 
-                        TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
-                    SELECT {', '.join(column_names)}, ?, ?, ?, ?
+                        TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime,Status)
+                    SELECT {', '.join(column_names)}, ?, ?, ?, ?,'Completed'
                     FROM PN_DATA 
                     WHERE PN = ?
                 """

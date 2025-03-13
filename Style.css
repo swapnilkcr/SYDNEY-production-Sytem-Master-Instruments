@@ -1145,7 +1145,7 @@ tr.finished-job:hover {
 
 /* Highlight for finished jobs */
 .finished-job {
-  background-color: green; /* Light green background */
+  background-color: limegreen; /* Light green background */
 }
 
 /* Highlight for near/past due jobs in default row */
@@ -1182,3 +1182,47 @@ tr.finished-job:hover {
   cursor: pointer;
   color:white;
 }
+
+tr.expanded-row.finished-job {
+  background: limegreen;
+}
+
+
+/* Add to your CSS */
+.status-cell {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.status-cell.active { background: #ffd700; color: #000; }
+.status-cell.finished { background: #90ee90; color: #000; }
+.status-cell.completed { background: #87ceeb; color: #000; }
+
+
+
+
+.tab-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 5px;
+}
+
+.color-item {
+  display: flex;
+  align-items: center; /* Aligns color box and text in one line */
+  gap: 5px; /* Space between box and text */
+}
+
+.color-box {
+  width: 10px;
+  height: 10px;
+}
+
+.orange { background-color: orange; }
+.red { background-color: red; }
+.green { background-color: green; }
+
+
+
+

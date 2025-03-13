@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('pagination-controls').style.display = 'none';
     
     let currentPage = 1;
-    const pageSize = 5;
+    const pageSize = 10;
     let currentFilters = {
         column: 'all',
         value: ''
@@ -329,8 +329,10 @@ function populateTable(records) {
     // Default row (limited columns)
     const isNearOrPastDue = isDateNearOrPassed1(record.requDate);
     // Check if the job is finished
-    const isFinished = record.status === 'Finished';
+    const isFinished = record.status === 'Finished' || record.status === 'Completed';
     const defaultRow = document.createElement('tr');
+    defaultRow.className = `status-${record.status.toLowerCase()}`;
+
     if (isNearOrPastDue) {
       defaultRow.classList.add('date-warning'); // Add highlight class
     }
@@ -699,9 +701,17 @@ function fetchRunningJobs() {
     const diffDays = Math.floor(diffTime / 86400000); // 86400000 ms/day
   
     // Return custom message based on due date
-    if (diffDays === 3) {
+    if (diffDays === 4) {
+      return '(4 days from today)';
+    } else if (diffDays ===3) {
       return '(3 days from today)';
-    } else if (diffDays < 0) {
+    } else if (diffDays ===2) {
+      return '(2 days from today)';
+    } 
+    else if (diffDays ===1 || diffDays === 0) {
+      return '(due today)';
+    } 
+    else if (diffDays < 0) {
       return '(past due date)';
     } else {
       return '';

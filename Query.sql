@@ -327,3 +327,31 @@ delete from ClockInOut;
 select * from ClockInOut;
 Delete from JobTable;
 Delete from JobsFinished;
+
+
+
+SELECT 
+                    c.RecordID,
+                    c.StaffName,
+                    c.JobID,
+                    c.StartTime,
+                    c.StopTime,
+                    c.LaborCost,
+                    j.CUST AS CustomerName,
+                    j."DRAW NO" AS DrawingNumber,
+                    j."NO/CELL" AS CellNo,
+                    j.QTY AS Quantity,
+                    j."REQU-DATE" AS RequestDate,
+                    COALESCE(j.AV * j.QTY, 0.0) AS EstimatedTime,
+                    ROUND(COALESCE(
+                        (strftime('%s', c.StopTime) - strftime('%s', c.StartTime)) / 3600.0, 0.0
+                    ), 2) AS TotalHoursWorked,
+                    CASE 
+                    WHEN f.Status = 'Completed' THEN 'Completed'
+                    WHEN j.Status = 'Finished' THEN 'Finished'
+                    ELSE 'Active'
+                    END AS Status
+                FROM ClockInOut c
+                LEFT JOIN PN_DATA j ON c.JobID = j.PN
+                LEFT JOIN JOBSFINISHED f ON c.JobID = f.PN
+                '''
