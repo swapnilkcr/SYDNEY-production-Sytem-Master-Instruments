@@ -1355,10 +1355,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     (labor_cost, estimated_time, total_hours_worked, remaining_time, job_id))
 
                 # Step 5: Delete from PN_DATA and JobTable after moving
-                execute_with_retry(cursor, "DELETE FROM PN_DATA WHERE PN = ?", (job_id,))
-                execute_with_retry(cursor, "DELETE FROM JobTable WHERE JobID = ?", (job_id,))
+                #execute_with_retry(cursor, "DELETE FROM PN_DATA WHERE PN = ?", (job_id,))
+                #execute_with_retry(cursor, "DELETE FROM JobTable WHERE JobID = ?", (job_id,))
 
-                commit_with_retry(conn)
+                #commit_with_retry(conn)
 
             self.send_response(200)
             self.set_cors_headers()
