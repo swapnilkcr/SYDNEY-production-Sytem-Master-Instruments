@@ -93,15 +93,6 @@ function showTable() {
       document.getElementById(`modal-${type}`).style.display = 'flex';
     }
 
-    //function openModal(modalId) {
-      // Update logic to handle 'modal-' prefix
-      //const modal = document.getElementById(`modal-${modalId}`);
-      //if (modal) {
-       // modal.style.display = "block";
-      //} else {
-        //console.error(`Modal with ID modal-${modalId} not found.`);
-     // }
-    //}
  
 
     function closeModal(type) {
@@ -109,52 +100,7 @@ function showTable() {
     }
 
 
-    /*document.addEventListener('DOMContentLoaded', function () {
-    const moveJobButton = document.getElementById('moveJobButton');
     
-    if (moveJobButton) {
-      moveJobButton.addEventListener('click', function () {
-        const jobDropdown = document.getElementById('job-select');
-        const selectedJobId = jobDropdown.value;
-
-        if (!selectedJobId) {
-          alert("Please select a job to move.");
-          return;
-        }
-
-        fetch(`${backendBaseUrl}/move-job`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ jobId: selectedJobId })
-        })
-        .then(response => response.json())
-        .then(data => {
-          alert(data.message || "Job moved successfully!");
-
-          const optionToRemove = jobDropdown.querySelector(`option[value="${selectedJobId}"]`);
-          if (optionToRemove) {
-            jobDropdown.removeChild(optionToRemove);
-          }
-        })
-        .catch(error => {
-          console.error("Error moving job:", error);
-          alert("Error moving job: " + error.message);
-        });
-      });
-    } else {
-      console.error('moveJobButton not found!');
-    }
-  });*/
-
-  /*$(document).ready(function() {
-    // Initialize Select2 on the dropdown with ID 'jobId'
-    $('#job-select').select2();
-  });
-  $('#job-select').select2({
-  placeholder: "Search for a job ID",
-  allowClear: true, // Adds a clear (X) button
-  minimumInputLength: 1 // Require at least 1 character to start searching
-})*/
 
 
 function logout() {
@@ -259,6 +205,8 @@ function searchAV() {
         
     </div>
     <div class="nav1">
+
+    <!-- In the dropdown menu -->
     <div class="dropdown">
       <a href="#" class="dropbtn">HOME</a>
       <div class="dropdown-content">
@@ -270,6 +218,7 @@ function searchAV() {
         <!-- In the dropdown-content div 
         <a href="#" onclick="openModal('finished-jobs')">View Finished Jobs</a> -->
         <a href="finished-jobs.html" onclick="fetchFinishedJobs()">View Finished Jobs</a>
+        <a href="csv_data.html" data-action="view-csv">ALL Data</a>
       </div>
     </div>
 

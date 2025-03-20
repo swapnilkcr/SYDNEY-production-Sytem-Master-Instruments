@@ -1,6 +1,6 @@
-
-PRAGMA table_info(MergedData);
-
+SELECT * FROM csv_data WHERE Drawing_Number = 'AL44-T';
+PRAGMA table_info(csv_data);
+drop table csv_data;
 .tables
 INSERT INTO Users (username, password) 
 VALUES ('Admin', 'Password123');
@@ -9,6 +9,7 @@ select * FROM ClockInOut;
 select * from Users;
 select * from JobTable;
 select * from JOBSFINISHED;
+select * from csv_data;
 SELECT RecordID, JobID, StartTime, StopTime, LaborCost FROM ClockInOut ORDER BY StopTime DESC LIMIT 5;
 
 SELECT RecordID, StaffName, JobID, StartTime, StopTime FROM ClockInOut WHERE StopTime IS NOT NULL;
@@ -355,3 +356,7 @@ SELECT
                 LEFT JOIN PN_DATA j ON c.JobID = j.PN
                 LEFT JOIN JOBSFINISHED f ON c.JobID = f.PN
                 '''
+
+Select * from JobTable;
+
+Select * from PN_DATA where PN = '347004';

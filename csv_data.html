@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MI-PERTH</title>
+  <link rel="stylesheet" href="Style.css">
+  <script src="clock.js"></script> <!-- Include clock.js for shared configuration -->
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.JPG" alt="" class="imglogo">
+    </div>
+    <div class="headr">Master Instruments</div>
+    <div id="usericon">
+      <img src="profile.png" alt="">
+      <div id="user-info" style="text-align: right; font-size: 14px; margin-right: 20px;"></div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <a href="layout.html" class="nav-btn">← Back to Home</a>
+  </nav>
+
+  <div class="page-container">
+    <div class="container">
+      <h2>AV DETAILS</h2>
+      
+      <!-- Add search input -->
+      <div class="search-container">
+        <input type="text" id="drawing-number" placeholder="Enter Drawing Number...">
+        <button onclick="searchCSVData()">Search</button>
+        <button class="clear-filters" id="clear-filters">Clear</button>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="loading" class="loading-spinner" style="display: none;"></div>
+
+      <!-- CSV data container -->
+      <div id="csv-data-container" class="table-container"></div>
+
+      <!-- Error message -->
+      <div id="error-message" class="error-message"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; Master Instruments. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function searchCSVData() {
+      const Drawing_Number = document.getElementById('drawing-number').value.trim();
+      
+      if (!Drawing_Number) {
+        alert('Please enter a Drawing Number to search.');
+        return;
+      }
+
+      console.log(`🔍 Searching for Drawing Number: ${Drawing_Number}`);  // Debugging
+      
+
+      // Show loading spinner
+      const loading = document.getElementById('loading');
+      const container = document.getElementById('csv-data-container');
+      const errorMsg = document.getElementById('error-message');
+
+      loading.style.display = 'block'; // Show spinner
+      container.style.display = 'none'; // Hide table
+      errorMsg.textContent = ''; // Clear previous error
+
+      // Fetch CSV data
+      fetchCSVData(Drawing_Number);
+    }
+
+    async function fetchCSVData(Drawing_Number = null) {
+    const container = document.getElementById('csv-data-container');
+    const loading = document.getElementById('loading');
+    const errorMsg = document.getElementById('error-message');
+
+    try {
+        const url = `${BASE_URL}/get-csv-data?Drawing_Number=${encodeURIComponent(Drawing_Number)}`;
+        console.log(`🌐 Fetching from: ${url}`);
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+
+        // Hide loading spinner
+        loading.style.display = 'none';
+
+        if (data.csvData && data.csvData.length > 0) {
+            const table = document.createElement('table');
+            table.className = 'csv-data-table';
+
+            // Create table header
+            const headers = Object.keys(data.csvData[0]);
+            const headerRow = document.createElement('tr');
+
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+
+                // Add class to "Total_av" column
+                if (header.toLowerCase() === "current_av") {
+                    th.classList.add("current_av");
+                }else if (header.toLowerCase() === "average_time") {
+                    th.classList.add("average_time");
+                }
+
+                headerRow.appendChild(th);
+            });
+
+            const thead = document.createElement('thead');
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Populate table body
+            const tbody = document.createElement('tbody');
+            data.csvData.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header] || 'N/A';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+
+            container.innerHTML = ''; // Clear previous content
+            container.appendChild(table);
+            container.style.display = 'block'; // Show the table
+
+            // Call function to add tooltip after rendering the table
+            addTooltipsToHeaders();
+        } else {
+            container.innerHTML = '<p>No data found for the specified file name.</p>';
+            container.style.display = 'block';
+        }
+    } catch (error) {
+        loading.style.display = 'none';
+        errorMsg.textContent = `Error loading data: ${error.message}`;
+        console.error('Fetch error:', error);
+    }
+}
+
+function addTooltipsToHeaders() {
+    const tooltipInfo = {
+        "current_av": "Current_av = USED TIME / QUANTITY",
+        "average_time": "Average_time = SUM(USED TIME) / SUM(QUANTITY)"
+    };
+
+    Object.keys(tooltipInfo).forEach(className => {
+        const header = document.querySelector(`.${className}`);
+
+        if (header) {
+            header.style.position = "relative"; // Needed for tooltip positioning
+
+            header.addEventListener("mouseenter", function () {
+                let tooltip = document.createElement("div");
+                tooltip.className = "tooltip-box";
+                tooltip.textContent = tooltipInfo[className]; // Get tooltip text
+
+                document.body.appendChild(tooltip);
+
+                // Positioning the tooltip
+                let rect = header.getBoundingClientRect();
+                tooltip.style.top = `${rect.bottom + window.scrollY}px`;
+                tooltip.style.left = `${rect.left + window.scrollX}px`;
+            });
+
+            header.addEventListener("mouseleave", function () {
+                document.querySelectorAll(".tooltip-box").forEach(tooltip => tooltip.remove());
+            });
+        }
+    });
+}
+
+
+
+    // Clear filters
+    document.getElementById('clear-filters').addEventListener('click', clearFilters);
+    
+    function clearFilters() {
+    document.getElementById('drawing-number').value = '';
+    window.location.reload();
+  }
+  </script>
+</body>
+</html>

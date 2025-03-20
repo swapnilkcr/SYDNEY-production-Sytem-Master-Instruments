@@ -1226,4 +1226,160 @@ tr.expanded-row.finished-job {
 
 
 
+/*Styling for csv_data.html page */
+/* CSV Data Page Styles */
+/* CSV Data Page Styles */
+.csv-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid black;
+}
+
+.csv-data-table th,
+.csv-data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid black;
+  font-size: 15px;
+}
+
+.csv-data-table th {
+  background-color: #003865 !important;
+  font-weight: 600;
+  color: white;
+}
+.csv-data-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  font-size: 1.2em;
+  color: #666;
+}
+
+.error-message {
+  color: #dc3545;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Search Container */
+.search-container {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.search-container input {
+  padding: 8px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-container button {
+  padding: 8px 16px;
+  font-size: 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-container button:hover {
+  background-color: #0056b3;
+}
+
+.nav a {
+  color:black;
+}
+
+
+
+/* Tooltip */
+.tooltip-box {
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 15px;
+  white-space: nowrap;
+  z-index: 10;
+  height: 30px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* CSVdata table */
+
+.csv-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd; /* Lighter border color for softer edges */
+  table-layout: auto; /* Allow columns to adjust based on content */
+}
+
+/* Table header styling */
+.csv-data-table th {
+  background-color: #f4f4f4; /* Lighter background for headers */
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #ddd; /* Adds a line between header and body */
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap; /* Prevents text from wrapping in header */
+  overflow: hidden; /* Hide overflow content in header */
+  text-overflow: ellipsis; /* Display ellipsis when content is too long in header */
+}
+
+/* Table body cell styling */
+.csv-data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd; /* Light border between rows */
+  font-size: 14px;
+  text-align: left;
+  white-space: normal; /* Allow wrapping of text */
+  word-wrap: break-word; /* Break long words to prevent overlap */
+}
+
+/* Alternate row color for better readability */
+.csv-data-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* Hover effect on rows */
+.csv-data-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Scrollable container for large tables */
+.table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 20px 0;
+  padding: 0 10px; /* Added padding to avoid table touching the container edges */
+}
+
+/* Tooltip styling (same as before) */
+.tooltip-box {
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
 

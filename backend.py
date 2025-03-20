@@ -724,6 +724,49 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(job_details).encode('utf-8'))
 
+            
+        
+        # In ClockInOutHandler's do_GET method
+        elif self.path.startswith('/get-csv-data'):
+            try:
+                # Parse query parameters
+                query = urlparse(self.path).query
+                params = parse_qs(query)
+                Drawing_Number = params.get('Drawing_Number', [None])[0]
+                print(f"🔍 Received Drawing_Number: {Drawing_Number} (Type: {type(Drawing_Number)})")
+
+
+                conn = sqlite3.connect(DB_NAME)
+                cursor = conn.cursor()
+
+                # Build query based on file_name
+                if Drawing_Number and Drawing_Number.strip():
+                    Drawing_Number = Drawing_Number.strip()  # Trim spaces
+                    sql_query = 'SELECT * FROM csv_data WHERE Drawing_Number = ?'
+                    print(f"📝 Executing SQL: {sql_query} with value '{Drawing_Number}'")
+                    cursor.execute(sql_query, (Drawing_Number,))
+                else:
+                    print("⚠️ Drawing_Number is missing, returning all records.")
+                    cursor.execute('SELECT * FROM csv_data')
+
+                columns = [col[0] for col in cursor.description]
+                rows = cursor.fetchall()
+                conn.close()
+
+                # Convert rows to list of dictionaries
+                csv_data = [dict(zip(columns, row)) for row in rows]
+
+                self.send_response(200)
+                self.set_cors_headers()
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'csvData': csv_data}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.set_cors_headers()
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
 
 
         elif self.path == "/get-config":
@@ -820,6 +863,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.set_cors_headers()
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            finally:
+                if conn:
+                    conn.close()
 
 
         elif self.path == '/stop-job':
@@ -973,6 +1019,10 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                    
+            finally:
+                if conn:
+                    conn.close()  # 
 
                 
         elif self.path == '/submit-job':
@@ -1270,7 +1320,9 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
     def handle_move_job(self):
+        conn = None
         try:
+            # Step 1: Parse request data
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data.decode('utf-8'))
@@ -1280,105 +1332,157 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.send_response(400)
                 self.set_cors_headers()
                 self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Job ID is required.'}).encode('utf-8'))
+                self.wfile.write(json.dumps({'error': 'Job ID is required'}).encode())
                 return
 
-            with sqlite3.connect(DB_NAME, timeout=30) as conn:
-                cursor = conn.cursor()
+            print(f"Processing job_id: {job_id}")  # Debugging
 
-                # Step 1: Ensure the job exists in JobTable, add it if missing
-                execute_with_retry(cursor, "SELECT 1 FROM JobTable WHERE JobID = ?", (job_id,))
-                job_exists = cursor.fetchone()
+            # Step 2: Connect to database with retry logic
+            max_retries = 5
+            retry_delay = 1  # seconds
+            for attempt in range(max_retries):
+                try:
+                    conn = sqlite3.connect(DB_NAME, timeout=30)
+                    cursor = conn.cursor()
 
-                if not job_exists:
-                    print(f"⚠️ Job {job_id} missing in JobTable. Adding it now.")
-                    execute_with_retry(cursor, """
-                        INSERT INTO JobTable (JobID, TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime)
-                        SELECT PN, 0, 0, 0, 0.0 FROM PN_DATA WHERE PN = ?
-                    """, (job_id,))
+                    # Step 3: Fetch job metrics
+                    cursor.execute('''
+                        SELECT TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime
+                        FROM JobTable WHERE JobID = ?
+                    ''', (job_id,))
+                    job_metrics = cursor.fetchone()
+
+                    if not job_metrics:
+                        raise ValueError(f"No metrics found for job {job_id}")
+
+                    print(f"Job metrics: {job_metrics}")  # Debugging
+
+                    # Step 4: Insert into JOBSFINISHED with all columns from PN_DATA
+                    cursor.execute('''
+                        INSERT INTO JOBSFINISHED (
+                            "INPUT DATE", PN, "NO/CELL", "DRAW NO", "REQU-DATE", CUST, "STOCK CODE", 
+                            QTY, "CELL CODE", "B$", "ORDER NO", MODEL, VOL, AH, WH, CHEM, STRUCTURE, 
+                            STAFF, WORKHR, "HR/PP", "END DATE", "TEST TIME", AV, "S$", "C-DRAW", 
+                            "C-CELLS", "C-AV", "C-B$", "C-S$", "C-STCODE", "ORIGINAL S$", DISCOUNT, 
+                            SALESMAN, "Customer Code", "Order Date", TotalLaborCost, EstimatedTime, 
+                            RemainingTime, TotalHoursWorked, Status
+                        )
+                        SELECT 
+                            "INPUT DATE", PN, "NO/CELL", "DRAW NO", "REQU-DATE", CUST, "STOCK CODE", 
+                            QTY, "CELL CODE", "B$", "ORDER NO", MODEL, VOL, AH, WH, CHEM, STRUCTURE, 
+                            STAFF, WORKHR, "HR/PP", "END DATE", "TEST TIME", AV, "S$", "C-DRAW", 
+                            "C-CELLS", "C-AV", "C-B$", "C-S$", "C-STCODE", "ORIGINAL S$", DISCOUNT, 
+                            SALESMAN, "Customer Code", "Order Date", ?, ?, ?, ?, 'Completed'
+                        FROM PN_DATA WHERE PN = ?
+                    ''', (*job_metrics, job_id))
+
+                    print(f"Inserted into JOBSFINISHED for job_id: {job_id}")  # Debugging
+
+                    # Step 5: Insert into csv_data
+                    cursor.execute('''
+                        SELECT "DRAW NO", QTY, CUST, "B$", "S$", PN, "INPUT DATE", "NO/CELL"
+                        FROM PN_DATA WHERE PN = ?
+                    ''', (job_id,))
+                    pn_data = cursor.fetchone()
+
+                    if pn_data:
+                        print(f"PN data: {pn_data}")  # Debugging
+                        drawing_number = pn_data[0] or 'N/A'
+                        qty = int(pn_data[1]) if pn_data[1] else 0
+                        cust = pn_data[2] or 'N/A'
+                        b_price = float(pn_data[3]) if pn_data[3] else 0.0
+                        s_price = float(pn_data[4]) if pn_data[4] else 0.0
+                        pn = pn_data[5] or 'N/A'
+                        input_date = pn_data[6] or '1900-01-01'
+                        cells = int(pn_data[7]) if pn_data[7] and str(pn_data[7]).isdigit() else None
+
+                        total_hours_worked = job_metrics[2]
+                        used_time = f"{total_hours_worked:.4f}"
+                        current_av = round(total_hours_worked / qty, 5) if qty else 0.0
+
+                        # Fetch distinct staff names and concatenate them
+                        cursor.execute('''
+                            SELECT DISTINCT StaffName 
+                            FROM ClockInOut 
+                            WHERE JobID = ? AND StaffName IS NOT NULL
+                        ''', (job_id,))
+                        staff_names = [row[0] for row in cursor.fetchall()]
+                        staff = "/".join(staff_names) if staff_names else "N/A"
+                        print(f"Staff: {staff}")  # Debugging
+
+                        # Calculate the sum of Used_time and Qty for the Drawing_Number
+                        cursor.execute('''
+                            SELECT 
+                                SUM(CAST(USED_TIME AS REAL)), 
+                                SUM(Qty) 
+                            FROM csv_data 
+                            WHERE Drawing_Number = ?
+                        ''', (drawing_number,))
+                        sum_used_time, sum_qty = cursor.fetchone() or (0.0, 0)
+
+                        # Add the current job's values to the sums
+                        sum_used_time += float(used_time)
+                        sum_qty += qty
+
+                        # Calculate the new average
+                        average = round(sum_used_time / sum_qty, 5) if sum_qty else 0.0
+                        print(f"Average: {average}")  # Debugging
+
+                        # Insert into csv_data
+                        cursor.execute('''
+                            INSERT INTO csv_data (
+                                Drawing_Number, DATE, Qty, USED_TIME, CURRENT_AV,
+                                AVERAGE_TIME, STAFF, COMMENT, NEW, TOTAL_AV,
+                                CUST, CELLS, B_PRICE, S_PRICE, PN
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            drawing_number, input_date, qty, used_time, current_av,
+                            average, staff, 'N/A', 'N/A', average,  # TOTAL_AV = average
+                            cust, cells, b_price, s_price, pn
+                        ))
+
+                        print(f"Inserted into csv_data for job_id: {job_id}")  # Debugging
+
+                    # Step 6: Delete from PN_DATA and JobTable
+                    cursor.execute('DELETE FROM PN_DATA WHERE PN = ?', (job_id,))
+                    cursor.execute('DELETE FROM JobTable WHERE JobID = ?', (job_id,))
+
+                    print(f"Deleted from PN_DATA and JobTable for job_id: {job_id}")  # Debugging
+
+                    # Commit all changes
                     conn.commit()
-                    print(f"✅ Job {job_id} added to JobTable.")
+                    print(f"Committed changes for job_id: {job_id}")  # Debugging
+                    break  # Exit retry loop on success
 
-                # Step 2: Fetch job metrics, handling missing values
-                execute_with_retry(cursor, 
-                    '''SELECT TotalLaborCost, 
-                            COALESCE(EstimatedTime, 0), 
-                            COALESCE(TotalHoursWorked, 0), 
-                            COALESCE(RemainingTime, 0) 
-                    FROM JobTable WHERE JobID = ?''', 
-                    (job_id,)
-                )
-                job_metrics = cursor.fetchone()
+                except sqlite3.OperationalError as e:
+                    if "database is locked" in str(e).lower():
+                        print(f"Database locked, retrying ({attempt + 1}/{max_retries})...")
+                        time.sleep(retry_delay)
+                        continue
+                    raise
+                except Exception as e:
+                    print(f"Error during move-job: {str(e)}")
+                    if conn:
+                        conn.rollback()
+                    raise
 
-                if not job_metrics:
-                    raise ValueError(f"No metrics found for job {job_id}")
-
-                # Unpack and calculate missing values
-                labor_cost, estimated_time, total_hours_worked, remaining_time = job_metrics
-
-                if estimated_time == 0:
-                    estimated_time = round(calculate_estimated_time(job_id),2)
-
-                if total_hours_worked == 0:
-                    total_hours_worked = get_total_hours_worked(job_id)
-
-                remaining_time = round(max(estimated_time - total_hours_worked, 0.0),2)
-
-                print(f"📊 Moving job {job_id} -> LaborCost: {labor_cost}, Estimated: {estimated_time}, "
-                    f"TotalWorked: {total_hours_worked}, Remaining: {remaining_time}")
-
-                # Step 3: Ensure JOBSFINISHED table exists
-                cursor.execute("PRAGMA table_info(PN_DATA)")
-                columns = [f'"{col[1]}" {col[2]}' for col in cursor.fetchall()]
-
-                create_query = f"""
-                    CREATE TABLE IF NOT EXISTS JOBSFINISHED (
-                        {', '.join(columns)},
-                        TotalLaborCost REAL,
-                        EstimatedTime REAL,
-                        TotalHoursWorked REAL,
-                        RemainingTime REAL
-                    )
-                """
-                execute_with_retry(cursor, create_query)
-
-                # Step 4: Move job to JOBSFINISHED
-                column_names = [f'"{col[1]}"' for col in cursor.execute("PRAGMA table_info(PN_DATA)")]
-                insert_query = f"""
-                    INSERT INTO JOBSFINISHED ({', '.join(column_names)}, 
-                        TotalLaborCost, EstimatedTime, TotalHoursWorked, RemainingTime,Status)
-                    SELECT {', '.join(column_names)}, ?, ?, ?, ?,'Completed'
-                    FROM PN_DATA 
-                    WHERE PN = ?
-                """
-                execute_with_retry(cursor, insert_query, 
-                    (labor_cost, estimated_time, total_hours_worked, remaining_time, job_id))
-
-                # Step 5: Delete from PN_DATA and JobTable after moving
-                #execute_with_retry(cursor, "DELETE FROM PN_DATA WHERE PN = ?", (job_id,))
-                #execute_with_retry(cursor, "DELETE FROM JobTable WHERE JobID = ?", (job_id,))
-
-                #commit_with_retry(conn)
-
+            # Step 7: Send success response
             self.send_response(200)
             self.set_cors_headers()
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Job moved successfully!'}).encode('utf-8'))
+            self.wfile.write(json.dumps({'message': 'Job moved successfully!'}).encode())
 
-        except sqlite3.OperationalError as e:
-            print(f"Database error: {e}")
-            self.send_response(500)
-            self.set_cors_headers()
-            self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Database is busy. Please try again.'}).encode('utf-8'))
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            print(f"Unexpected error: {str(e)}")
             self.send_response(500)
             self.set_cors_headers()
             self.end_headers()
-            self.wfile.write(json.dumps({'message': 'Server error'}).encode('utf-8'))
+            self.wfile.write(json.dumps({'error': 'Internal server error'}).encode())
 
+        finally:
+            if conn:
+                conn.close()
 
     
 

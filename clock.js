@@ -35,7 +35,7 @@ if (!env) {
 }
 
 // Set backend based on environment
-const BACKEND_IP = "10.0.2.161";
+const BACKEND_IP = "10.0.0.80";
 const backendBaseUrl = env === "test" 
   ? `http://${BACKEND_IP}:3003`  // Test backend
   : `http://${BACKEND_IP}:3000`; // Prod backend
@@ -114,6 +114,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
     updateFilterPlaceholder();
     document.getElementById('clear-filter1').addEventListener('click', clearFilter1);
+
+
+    /*csv_data.html */
+    document.querySelector('[data-action="view-csv"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      navigateToCSVDataPage();
+    });
     
   
   
@@ -1280,6 +1287,13 @@ function toggleExpand(button) {
 
 
 
+function navigateToCSVDataPage() {
+  // Save current state if needed
+  localStorage.setItem('lastPage', window.location.pathname);
+
+  // Redirect to CSV data page
+  window.location.href = 'csv_data.html';
+}
 
 
 
