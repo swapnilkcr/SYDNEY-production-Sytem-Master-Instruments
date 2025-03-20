@@ -742,7 +742,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 # Build query based on file_name
                 if Drawing_Number and Drawing_Number.strip():
                     Drawing_Number = Drawing_Number.strip()  # Trim spaces
-                    sql_query = 'SELECT * FROM csv_data WHERE Drawing_Number = ?'
+                    sql_query = 'SELECT * FROM csv_data WHERE Drawing_Number = ? ORDER BY DATE DESC'
                     print(f"📝 Executing SQL: {sql_query} with value '{Drawing_Number}'")
                     cursor.execute(sql_query, (Drawing_Number,))
                 else:
@@ -753,8 +753,25 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 rows = cursor.fetchall()
                 conn.close()
 
+
+               
+
                 # Convert rows to list of dictionaries
                 csv_data = [dict(zip(columns, row)) for row in rows]
+                hidden_column = 'NEW'  # Column to hide
+                for row in csv_data:
+                    if hidden_column in row:
+                        del row[hidden_column] 
+
+                
+                for i, row in enumerate(csv_data):
+                    if i == 0:
+                        # First row: Set TOTAL_AV = AVERAGE_TIME
+                        row['TOTAL_AV'] = row['AVERAGE_TIME']
+                    else:
+                        # Subsequent rows: Set TOTAL_AV to empty string
+                        row['TOTAL_AV'] = ' '
+                    
 
                 self.send_response(200)
                 self.set_cors_headers()
@@ -1432,7 +1449,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         cursor.execute('''
                             INSERT INTO csv_data (
                                 Drawing_Number, DATE, Qty, USED_TIME, CURRENT_AV,
-                                AVERAGE_TIME, STAFF, COMMENT, NEW, TOTAL_AV,
+                                AVERAGE_TIME, STAFF, COMMENT, NEW, 'TOTAL_AV',
                                 CUST, CELLS, B_PRICE, S_PRICE, PN
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ''', (

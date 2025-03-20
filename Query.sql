@@ -228,15 +228,20 @@ SELECT * FROM ClockInOut WHERE Status = 'active';
 INSERT INTO ClockInOut (StaffName, JobID, StartTime, Status) 
 VALUES ('SWAPNIL', '328741', '2025-02-25 09:00:00', 'active');
 
+.tables
+pragma table_info(PN_DATA);
+select * from PN_DATA where PN = '323793';
+
+select * from csv_data;
+
+
+UPDATE csv_data
+SET Drawing_Number = SUBSTR(Drawing_Number, 1, LENGTH(Drawing_Number) - 2)
+WHERE Drawing_Number LIKE '%-T';
 
 
 
-
-
-
-
-
-
+select * from PN_DATA where DRAW NO= 'CH605';
 
 
 
