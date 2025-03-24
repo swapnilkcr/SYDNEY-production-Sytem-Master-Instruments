@@ -241,7 +241,7 @@ WHERE Drawing_Number LIKE '%-T';
 
 
 
-select * from PN_DATA where DRAW NO= 'CH605';
+select * from PN_DATA where "DRAW NO "= 'RECELL';
 
 
 
@@ -365,3 +365,9 @@ SELECT
 Select * from JobTable;
 
 Select * from PN_DATA where PN = '347004';
+
+
+UPDATE csv_data
+SET Drawing_Number = REPLACE(Drawing_Number, '-T', '')
+WHERE Drawing_Number LIKE '%-T';
+

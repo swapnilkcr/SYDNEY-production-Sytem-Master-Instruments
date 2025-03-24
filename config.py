@@ -18,13 +18,14 @@ load_dotenv(env_path)
 
 # Get local network IP dynamically
 hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
+local_ip = "10.0.0.80"  #Hardcoded static IP
+
 
 # Get environment variables
 ENV = os.getenv('ENV', 'test')
 PORT = int(os.getenv('PORT', 3003))  # Default to test backend port
 FRONTEND_PORT = 3004 if ENV == 'test' else 3001
-BASE_URL = os.getenv('BASE_URL', f'http://{local_ip}:{PORT}')
+BASE_URL = os.getenv('BASE_URL', f'http://10.0.0.80:{PORT}')
 DB_NAME = os.getenv('DB_NAME', 'clock_in_management.db')
 
 print(f"Loaded environment: {ENV}")

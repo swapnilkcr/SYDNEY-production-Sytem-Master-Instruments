@@ -36,40 +36,72 @@ if (!env) {
 
 // Set backend based on environment
 const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = env === "test" 
+/*const backendBaseUrl = env === "test" 
   ? `http://${BACKEND_IP}:3003`  // Test backend
-  : `http://${BACKEND_IP}:3000`; // Prod backend
+  : `http://${BACKEND_IP}:3000`; // Prod backend*/
+
+const backendBaseUrl = `http://10.0.0.80:${env === "test" ? 3003 : 3000}`;
 
 console.log(`🔄 Detected Environment: ${env}`);
 console.log(`🔗 Backend Base URL: ${backendBaseUrl}`);
 
-fetch(`${backendBaseUrl}/get-config`)
-  .then(response => response.json())
-  .then(config => {
-    BASE_URL = config.base_url || backendBaseUrl;
-    console.log("✅ Backend URL:", BASE_URL);
-    fetchStaff();
-    fetchJobs();
-  })
-  .catch(error => {
-    console.error('❌ Error fetching config:', error);
-    BASE_URL = backendBaseUrl; // Fallback
-    fetchStaff();
-    fetchJobs();
-  });
 
+window.addEventListener('beforeunload', (event) => {
+  console.warn("🚨 Page is about to reload! Possible cause detected.");
+});
+
+let fetchConfigCalled = false; // Prevent multiple calls
+
+function fetchConfig() {
+    if (fetchConfigCalled) {
+        console.warn("⚠️ fetchConfig() already called! Skipping.");
+        return;
+    }
+    fetchConfigCalled = true; // Mark as called
+    console.log("🔄 Calling fetchConfig()...");
+
+    fetch(`${backendBaseUrl}/get-config`)
+        .then(response => {
+            if (!response.ok) throw new Error(`Failed to fetch config: ${response.statusText}`);
+            return response.json();
+        })
+        .then(config => {
+            BASE_URL = config.base_url || backendBaseUrl;
+            console.log("✅ Backend URL:", BASE_URL);
+
+            // TEST: Check if calling fetchStaff() or fetchJobs() causes refresh
+            console.log("⏳ Calling fetchStaff()...");
+            fetchStaff();  // Comment this line if refresh persists
+
+            console.log("⏳ Calling fetchJobs()...");
+            fetchJobs();  // Comment this line if refresh persists
+        })
+        .catch(error => {
+            console.error('❌ Error fetching config:', error);
+            fetchConfigCalled = false; // Allow retry only if needed
+
+            BASE_URL = backendBaseUrl;
+            console.warn("⚠️ Using fallback BASE_URL:", BASE_URL);
+        });
+}
+
+
+window.onload = function () {
+  //fetchConfig();
+};
   let currentPage = 1;
   let lastSeenId = 0; // Stores the last record ID seen
 
 
 
 document.addEventListener('DOMContentLoaded', (event) => {
-    event.preventDefault();
     const username = localStorage.getItem('username') || 'Unknown User';
     const userRole = localStorage.getItem('userRole') || 'Unknown Role';
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+
+    
     
     // Display the logged-in user info
     const userInfoDiv = document.getElementById('user-info');
@@ -82,13 +114,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
         element.style.display = 'none'; // Hide elements
       });
     }
-  
+    
     console.log(`Logged in as: ${username} (Role: ${userRole})`);
     document.querySelector('.filter-container').style.display = 'none';
     document.getElementById('records-table').style.display = 'none';
     document.getElementById('pagination-controls').style.display = 'none';
-    
-    let currentPage = 1;
+    fetchConfig();
+    //let currentPage = 1;
     const pageSize = 5;
     let currentFilters = {
         column: 'all',
@@ -252,7 +284,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             } else {
                 messageDiv.textContent = 'No active job found for given Staff Name and job I';
             }
-            window.location.reload();
+            fetchRunningJobs();
         })
         .catch(error => {
             console.error('Error stopping the job:', error);
@@ -322,6 +354,31 @@ function fetchRecords() {
         messageDiv.textContent = `Error: ${error.message}`;
     });
 }
+
+// Toggle expand/collapse
+function toggleExpand(button) {
+  const row = button.closest('tr');
+  const expandedRow = row.nextElementSibling;
+
+  if (expandedRow.style.display === 'none') {
+    expandedRow.style.display = 'table-row';
+    button.textContent = '-';
+  } else {
+    expandedRow.style.display = 'none';
+    button.textContent = '+';
+  }
+}
+
+
+
+function navigateToCSVDataPage() {
+  // Save current state if needed
+  localStorage.setItem('lastPage', window.location.pathname);
+
+  // Redirect to CSV data page
+  window.location.href = 'csv_data.html';
+}
+
 
 
 
@@ -434,7 +491,7 @@ const moveJobBtn = document.getElementById('moveJobButton');
         fetchJobs();
         // Clear selection
         jobSelect.value = '';
-        window.location.reload();
+        //window.location.reload();
       })
       .catch(error => {
         console.error('Error:', error);
@@ -627,68 +684,71 @@ function fetchRunningJobs() {
 }
 
 //Fetch JOBS
-  let fetchJobsCalled = false;
-  let cachedJobs = null; // Store fetched jobs
-  function fetchJobs() {
-    console.log("🔍 fetchJobs() called at:", new Date().toISOString());  // Track every call
-    if (fetchJobsCalled) {
-          console.warn("⚠️ fetchJobs() already called! Skipping.");
-          return;
-    }
-      fetchJobsCalled = true; // Mark function as called
-      console.log("🔍 fetchJobs() called");
-      const jobSelect = document.getElementById('job-select');
-      if (!jobSelect) {
-          console.error('❌ Error: jobSelect element not found.');
-          return;
-      }
-      console.log("✅ Found jobSelect element.");
-      console.log("🚀 Fetching jobs from backend...");
-      fetch(`${BASE_URL}/get-jobs`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-        })
-      .then(response => {
-          console.log("🔄 Fetch response status:", response.status);
-          if (response.redirected) {
-              console.warn("⚠️ Redirect detected! This may be causing a loop.");
-              return;
-          }
-          return response.json();
-      })
-      .then(data => {
-        if (!data || !data.jobs || data.jobs.length === 0) return;
-  
-        jobSelect.innerHTML = '<option value="">-- Select Job --</option>';
-  
-        data.jobs.forEach(job => {
-          const option = document.createElement('option');
-          option.value = job.jobId;
-          
-          // Add custom message for near/past due dates
-          const message = getDueDateMessage(job.requiredDate);
-          option.textContent = `${job.jobId} - ${job.customer} ${message}`;
-          option.dataset.requiredDate = job.requiredDate;
-  
-          // Highlight in red if near/past due
-          if (message) {
-            option.classList.add('date-warning');
-          }
-  
-          jobSelect.appendChild(option);
-        });
-  
-        // Update Select2 with styling
-        $(jobSelect).select2({
-          placeholder: "Search for a job ID",
-          allowClear: true,
-          minimumInputLength: 0,
-          templateResult: formatJobOption
-        });
-      })
-      .catch(error => console.error('Error fetching jobs:', error));
+let fetchJobsCalled = false; // Flag to prevent multiple calls
+
+function fetchJobs() {
+  if (fetchJobsCalled) {
+    console.warn("⚠️ fetchJobs() already called! Skipping.");
+    return;
   }
-  
+
+  fetchJobsCalled = true; // Mark function as called
+  const jobSelect = document.getElementById('job-select');
+
+  if (!jobSelect) {
+    console.error('❌ Error: jobSelect element not found.');
+    return;
+  }
+
+  console.log("🚀 Fetching jobs from backend...");
+
+  fetch(`${BASE_URL}/get-jobs`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch jobs: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!data || !data.jobs || data.jobs.length === 0) {
+        console.warn("⚠️ No jobs found in the response.");
+        return;
+      }
+
+      jobSelect.innerHTML = '<option value="">-- Select Job --</option>'; // Clear existing options
+
+      data.jobs.forEach(job => {
+        const option = document.createElement('option');
+        option.value = job.jobId;
+
+        // Add custom message for near/past due dates
+        const message = getDueDateMessage(job.requiredDate);
+        option.textContent = `${job.jobId} - ${job.customer} ${message}`;
+        option.dataset.requiredDate = job.requiredDate;
+
+        // Highlight in red if near/past due
+        if (message) {
+          option.classList.add('date-warning');
+        }
+
+        jobSelect.appendChild(option);
+      });
+
+      // Update Select2 with styling
+      $(jobSelect).select2({
+        placeholder: "Search for a job ID",
+        allowClear: true,
+        minimumInputLength: 0,
+        templateResult: formatJobOption,
+      });
+    })
+    .catch(error => {
+      console.error('❌ Error fetching jobs:', error);
+    });
+}  
   // Helper function to calculate due date message
   function getDueDateMessage(requDate) {
     if (!requDate) return '';
@@ -738,43 +798,56 @@ function fetchRunningJobs() {
 
 
 
-let isFetching = false;
-function fetchStaff() {
-  console.log('fetching')
-  const staffSelect = document.getElementById('staff-select');
-  if (!staffSelect) {
-    console.error('Error: staffSelect element not found.');
-    return;
-  }
+  let isFetchingStaff = false;
 
-  if (isFetching) return;
-  isFetching = true;
-  fetch(`${BASE_URL}/get-staff`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(response => response.json())
-    .then(data => {
-      if (data.staff && data.staff.length > 0) {
+  function fetchStaff() {
+    if (isFetchingStaff) {
+      console.warn("⚠️ fetchStaff() already called! Skipping.");
+      return;
+    }
+  
+    isFetchingStaff = true; // Mark function as called
+    const staffSelect = document.getElementById('staff-select');
+  
+    if (!staffSelect) {
+      console.error('❌ Error: staffSelect element not found.');
+      return;
+    }
+  
+    console.log("🚀 Fetching staff from backend...");
+  
+    fetch(`${BASE_URL}/get-staff`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch staff: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!data || !data.staff || data.staff.length === 0) {
+          console.warn("⚠️ No staff found in the response.");
+          return;
+        }
+  
         staffSelect.innerHTML = '<option value="">-- Select Staff --</option>'; // Clear existing options
+  
         data.staff.forEach(staff => {
           const option = document.createElement('option');
           option.value = staff;
           option.textContent = staff;
           staffSelect.appendChild(option);
         });
-      } else {
-        console.warn('No staff data available.');
-      }
-    })
-    .catch(error => {
-      console.error('Error fetching staff:', error);
-    })
-    .finally(() => {
-      isFetching = false;  // Reset flag even if there's an error
-    });
-    
-}
+      })
+      .catch(error => {
+        console.error('❌ Error fetching staff:', error);
+      })
+      .finally(() => {
+        isFetchingStaff = false; // Reset flag
+      });
+  }
 
 
 
@@ -813,7 +886,7 @@ function addStaff() {
         
           const staffSelect = document.getElementById('staff-select');
           staffSelect.innerHTML = '<option value="">-- Select Staff --</option>'; // Clear dropdown
-          fetchStaff(); // Refresh staff dropdown
+          //fetchStaff(); // Refresh staff dropdown
         } else if (data.error) {
           throw new Error(data.error);
         } else {
@@ -997,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           alert('Failed to finish the job.');
         }
-        window.location.reload(); // Refresh the page
+        //window.location.reload(); // Refresh the page
       })
       .catch(error => {
         console.error('Error finishing job:', error);
@@ -1008,8 +1081,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
+let isFetchingFinishedJobs = false;
 function fetchFinishedJobs() {
+  if (isFetchingFinishedJobs) {
+    console.warn("⚠️ fetchFinishedJobs() already in progress. Skipping.");
+    return;
+  }
+
+  isFetchingFinishedJobs = true;
+
   fetch(`${backendBaseUrl}/view-finished-jobs`)
     .then(response => response.json())
     .then(data => {
@@ -1037,16 +1117,17 @@ function fetchFinishedJobs() {
         container.appendChild(table);
       } else {
         container.innerHTML = '<p>No finished jobs found.</p>';
+        isFetchingFinishedJobs = false;
       }
     })
     .catch(error => {
       console.error('Error fetching finished jobs:', error);
       document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
+    })
+    .finally(() => {
+      isFetchingFinishedJobs = false;
     });
 }
-document.addEventListener('DOMContentLoaded', () => {
-  fetchFinishedJobs();
-})
 
 function searchByCustName() {
     const input = document.getElementById('custName').value.toLowerCase();
@@ -1269,31 +1350,6 @@ function isDateNearOrPassed(requDate) {
   return diffDays <= 7; // Highlight if within 5 days or past
 }
 
-
-
-// Toggle expand/collapse
-function toggleExpand(button) {
-  const row = button.closest('tr');
-  const expandedRow = row.nextElementSibling;
-
-  if (expandedRow.style.display === 'none') {
-    expandedRow.style.display = 'table-row';
-    button.textContent = '-';
-  } else {
-    expandedRow.style.display = 'none';
-    button.textContent = '+';
-  }
-}
-
-
-
-function navigateToCSVDataPage() {
-  // Save current state if needed
-  localStorage.setItem('lastPage', window.location.pathname);
-
-  // Redirect to CSV data page
-  window.location.href = 'csv_data.html';
-}
 
 
 

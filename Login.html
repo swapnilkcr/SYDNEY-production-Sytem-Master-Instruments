@@ -90,10 +90,14 @@ const credentials = {
 
 
   // Prevent navigating back to previous pages
+/*if (window.location.pathname !== "/Login.html") {
   history.pushState(null, null, window.location.href);
   window.addEventListener('popstate', () => {
-    history.pushState(null, null, window.location.href);
+    if (window.location.pathname !== "/Login.html") {
+      history.pushState(null, null, window.location.href);
+    }
   });
+}*/
 
   document.getElementById('login-button').addEventListener('click', (event) => {
     event.preventDefault();
@@ -123,28 +127,41 @@ const credentials = {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check for valid session
   const userRole = localStorage.getItem('userRole');
   const username = localStorage.getItem('username');
-  
-  // Only redirect if both values exist and are valid
-  if (userRole && username) {
-    // Verify against known credentials
-    const validRoles = ['admin', 'staff'];
-    if (validRoles.includes(userRole) && credentials[userRole]?.username === username) {
-      window.location.href = `layout.html`;
-    } else {
-      // Clear invalid credentials
-      localStorage.clear();
-    }
+
+  // Redirect only if the user is on the login page and already logged in
+  if (userRole && username && window.location.pathname.endsWith('Login.html')) {
+    console.log("User is already logged in. Redirecting to layout.html...");
+    window.location.href = 'layout.html';
   }
 });
 
-function logout() {
-  localStorage.removeItem('username');
-  localStorage.removeItem('userRole');
-  window.location.href = `${BASE_URL}/Login.html`;
-}
-  </script>
+document.getElementById('login-button').addEventListener('click', (event) => {
+  event.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const errorMessage = document.getElementById('error-message');
+
+  // Clear any previous error messages
+  errorMessage.textContent = '';
+
+  // Check credentials
+  const user = Object.values(credentials).find(
+    cred => cred.username === username && cred.password === password
+  );
+
+  if (user) {
+    // Store the user's role and username in localStorage
+    localStorage.setItem('username', user.username);
+    localStorage.setItem('userRole', user.role);
+
+    // Redirect to the layout page
+    window.location.href = 'layout.html';
+  } else {
+    errorMessage.textContent = "Invalid username or password!";
+  }
+});
+</script>
 </body>
 </html>
