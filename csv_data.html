@@ -50,7 +50,7 @@
       <p>&copy; Master Instruments. All rights reserved.</p>
     </div>
   </footer>
-
+  
   <script>
     function searchCSVData() {
       const Drawing_Number = document.getElementById('drawing-number').value.trim();
@@ -82,7 +82,7 @@
     const errorMsg = document.getElementById('error-message');
 
     try {
-        const url = `${BASE_URL}/get-csv-data?Drawing_Number=${encodeURIComponent(Drawing_Number)}`;
+        const url = `${backendBaseUrl}/get-csv-data?Drawing_Number=${encodeURIComponent(Drawing_Number)}`;
         console.log(`🌐 Fetching from: ${url}`);
 
         const response = await fetch(url);

@@ -242,7 +242,216 @@
       </div>
     </footer>
   </div>
-
+  <script>
+    function openViewAVModal() {
+        const modal = document.getElementById('viewAVModal');
+        if (modal) {
+          modal.style.display = 'block'; // Show the modal
+        }
+      }
+  
+      // Function to close the "View AV" modal
+    function closeAVModal() {
+        const modal = document.getElementById('viewAVModal');
+        if (modal) {
+          modal.style.display = 'none'; // Hide the modal
+        }
+    }
+    
+    function toggleMenu() {
+              const sidebar = document.getElementById("sidebar");
+              sidebar.classList.toggle("active");
+          }
+          document.addEventListener('click', (event) => {
+          const sidebar = document.getElementById('sidebar');
+          const menuBtn = document.querySelector('.menu-btn');
+  
+      if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+        sidebar.classList.remove('active');
+      }
+    });
+    document.querySelector('.menu-btn').addEventListener('click', toggleMenu);
+  
+          function fetchJobDetails() {
+              var jobId = document.getElementById("jobIdInput").value;
+              if (jobId) {
+                  fetch("/get-job-work-details?jobId=" + encodeURIComponent(jobId))
+                  .then(response => response.json())
+                  .then(data => {
+                      console.log("Job Details:", data);
+                      alert("Job Details Fetched Successfully!");
+                  })
+                  .catch(error => console.error("Error fetching job details:", error));
+              } else {
+                  alert("Please enter a Job ID");
+              }
+          }
+  
+  function showTable() {
+    // Add null checks
+    const filterContainer = document.querySelector('.filter-container');
+    const recordsTable = document.getElementById('records-table');
+    
+    if (filterContainer && recordsTable) {
+      filterContainer.style.display = 'block';
+      recordsTable.style.display = 'table';
+    } else {
+      console.error('Elements not found - check your HTML structure');
+    }
+  }
+  
+    function addStaffName() {
+      alert("Add Staff Name option selected. Implement functionality here.");
+    }
+  
+    function addJobID() {
+      alert("Add Job ID option selected. Implement functionality here.");
+    }
+  
+  
+      //Add new job
+     // function logout() {
+     //   window.location.href = `${BASE_URL}/Login.html`;
+      //}
+  
+      function openModal(type) {
+        document.getElementById(`modal-${type}`).style.display = 'flex';
+      }
+  
+      //function openModal(modalId) {
+        // Update logic to handle 'modal-' prefix
+        //const modal = document.getElementById(`modal-${modalId}`);
+        //if (modal) {
+         // modal.style.display = "block";
+        //} else {
+          //console.error(`Modal with ID modal-${modalId} not found.`);
+       // }
+      //}
+   
+  
+      function closeModal(type) {
+        document.getElementById(`modal-${type}`).style.display = 'none';
+      }
+  
+  
+      /*document.addEventListener('DOMContentLoaded', function () {
+      const moveJobButton = document.getElementById('moveJobButton');
+      
+      if (moveJobButton) {
+        moveJobButton.addEventListener('click', function () {
+          const jobDropdown = document.getElementById('job-select');
+          const selectedJobId = jobDropdown.value;
+  
+          if (!selectedJobId) {
+            alert("Please select a job to move.");
+            return;
+          }
+  
+          fetch(`${backendBaseUrl}/move-job`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jobId: selectedJobId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            alert(data.message || "Job moved successfully!");
+  
+            const optionToRemove = jobDropdown.querySelector(`option[value="${selectedJobId}"]`);
+            if (optionToRemove) {
+              jobDropdown.removeChild(optionToRemove);
+            }
+          })
+          .catch(error => {
+            console.error("Error moving job:", error);
+            alert("Error moving job: " + error.message);
+          });
+        });
+      } else {
+        console.error('moveJobButton not found!');
+      }
+    });*/
+  
+    /*$(document).ready(function() {
+      // Initialize Select2 on the dropdown with ID 'jobId'
+      $('#job-select').select2();
+    });
+    $('#job-select').select2({
+    placeholder: "Search for a job ID",
+    allowClear: true, // Adds a clear (X) button
+    minimumInputLength: 1 // Require at least 1 character to start searching
+  })*/
+  
+  
+  function logout() {
+    localStorage.clear(); // Clear stored role and username
+    window.location.href = "Login.html"; // Redirect to login page
+  }
+  
+  
+  function searchAV() {
+      const stockCode = document.getElementById('stockCode').value.trim();
+      if (!stockCode) {
+          document.getElementById('errorMessage').innerText = 'Please enter a STOCK CODE.';
+          document.getElementById('errorMessage').style.display = 'block';
+          return;
+      }
+  
+      // Clear previous error message and results
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('avResult').style.display = 'none';
+  
+      // Show loading message
+      const loadingMessage = document.createElement('p');
+      loadingMessage.id = 'loadingMessage';
+      loadingMessage.innerText = 'Loading...';
+      document.querySelector('#viewAVModal .modal-content').appendChild(loadingMessage);
+  
+      // Fetch AV based on STOCK CODE
+      fetch(`${backendBaseUrl}/get-av?stockCode=${encodeURIComponent(stockCode)}`)
+          .then(response => response.json())
+          .then(data => {
+              document.getElementById('loadingMessage').remove();  // Remove loading message
+  
+              if (data.avValue) {
+                  document.getElementById('avValue').innerText = data.avValue;
+                  document.getElementById('avResult').style.display = 'block';
+              } else {
+                  document.getElementById('errorMessage').innerText = 'AV Time not found for the entered STOCK CODE.';
+                  document.getElementById('errorMessage').style.display = 'block';
+                  document.getElementById('avResult').style.display = 'none';
+              }
+          })
+          .catch(error => {
+              document.getElementById('loadingMessage').remove();
+              console.error('Error fetching AV value:', error);
+              document.getElementById('errorMessage').innerText = 'An error occurred while fetching the AV value.';
+              document.getElementById('errorMessage').style.display = 'block';
+          });
+  }
+  
+  
+    function closeAVModal() {
+      const modal = document.getElementById('viewAVModal');
+      if (modal) {
+        modal.style.display = 'none'; // Hide the modal
+        
+        // Clear the search input
+        document.getElementById('drawNo').value = '';
+        
+        // Hide the previous search result and error messages
+        document.getElementById('avResult').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+      }
+    }
+  
+  
+  
+  
+    
+   
+  // Updated filter function
+  
+  </script>
  <script src="clock.js"></script>
 </body>
 </html>

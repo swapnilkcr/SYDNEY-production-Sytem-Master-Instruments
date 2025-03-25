@@ -1437,9 +1437,13 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                         ''', (drawing_number,))
                         sum_used_time, sum_qty = cursor.fetchone() or (0.0, 0)
 
+                        # Fix None values before arithmetic operations
+                        sum_used_time = float(sum_used_time) if sum_used_time is not None else 0.0
+                        sum_qty = int(sum_qty) if sum_qty is not None else 0
+
                         # Add the current job's values to the sums
-                        sum_used_time += float(used_time)
-                        sum_qty += qty
+                        sum_used_time += float(used_time)  # Ensure used_time is not None
+                        sum_qty += qty if qty is not None else 0  # Ensure qty is not None
 
                         # Calculate the new average
                         average = round(sum_used_time / sum_qty, 5) if sum_qty else 0.0

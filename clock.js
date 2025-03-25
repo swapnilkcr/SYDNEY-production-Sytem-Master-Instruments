@@ -154,7 +154,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
       navigateToCSVDataPage();
     });
     
-  
+  //TOggle expand/collapse
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('expand-btn')) {
+        const button = e.target;
+        const row = button.closest('tr');
+        const expandedRow = row.nextElementSibling;
+    
+        if (expandedRow.style.display === 'none') {
+          expandedRow.style.display = 'table-row';
+          button.textContent = '-';
+        } else {
+          expandedRow.style.display = 'none';
+          button.textContent = '+';
+        }
+      }
+    });
   
   /*window.addEventListener('popstate', (event) => {
     event.preventDefault();
@@ -280,7 +295,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         .then(result => {
             console.log('Stop-job response:', result); // Debugging log
             if (result.message) {
-                messageDiv.textContent = result.message;
+                messageDiv.textContent = messageDiv.textContent = result.message || 'Job stopped successfully!';
             } else {
                 messageDiv.textContent = 'No active job found for given Staff Name and job I';
             }
@@ -355,19 +370,6 @@ function fetchRecords() {
     });
 }
 
-// Toggle expand/collapse
-function toggleExpand(button) {
-  const row = button.closest('tr');
-  const expandedRow = row.nextElementSibling;
-
-  if (expandedRow.style.display === 'none') {
-    expandedRow.style.display = 'table-row';
-    button.textContent = '-';
-  } else {
-    expandedRow.style.display = 'none';
-    button.textContent = '+';
-  }
-}
 
 
 
@@ -412,7 +414,7 @@ function populateTable(records) {
       <td>${record.stopTime || 'In Progress'}</td>
       <td>${record.status || 'Active'}</td>
       <td>
-        <button class="expand-btn" onclick="toggleExpand(this)">+</button>
+        <button class="expand-btn">+</button>
       </td>
     `;
 
@@ -483,6 +485,7 @@ const moveJobBtn = document.getElementById('moveJobButton');
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId })
+        
       })
       .then(response => response.json())
       .then(data => {
@@ -500,6 +503,20 @@ const moveJobBtn = document.getElementById('moveJobButton');
     });
   }
 
+  // Toggle expand/collapse
+/*function toggleExpand(button) {
+  const row = button.closest('tr');
+  const expandedRow = row.nextElementSibling;
+
+  if (expandedRow.style.display === 'none') {
+    expandedRow.style.display = 'table-row';
+    button.textContent = '-';
+  } else {
+    expandedRow.style.display = 'none';
+    button.textContent = '+';
+  }
+}
+*/
 
 // Updated pagination controls
 function updatePagination(data) {
@@ -594,6 +611,7 @@ function debounce(func, timeout = 300) {
       });
   });
 
+      fetchFinishedJobs();
   
       updateFilterPlaceholder()
   
@@ -1117,7 +1135,6 @@ function fetchFinishedJobs() {
         container.appendChild(table);
       } else {
         container.innerHTML = '<p>No finished jobs found.</p>';
-        isFetchingFinishedJobs = false;
       }
     })
     .catch(error => {

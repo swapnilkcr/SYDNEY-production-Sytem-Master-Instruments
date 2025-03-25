@@ -103,6 +103,8 @@ h1.h1 {
 div#finished-jobs-container {
     overflow: auto;
 }
+
+
   </style>
 </head>
 <body>
@@ -127,6 +129,9 @@ div#finished-jobs-container {
 
   <script src="clock.js"></script>
   <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    fetchFinishedJobs();
+});
 
     let currentPage1 = 1;
     const pageSize = 10; // Add this line at the top of your script
