@@ -1,7 +1,7 @@
 import sqlite3
 
 # Create a connection to the SQLite database (it will create the file if it doesn't exist)
-conn = sqlite3.connect('clock_in_management.db')
+conn = sqlite3.connect('sydney.db')
 cursor = conn.cursor()
 
 # Create the table to store clock-in/clock-out data

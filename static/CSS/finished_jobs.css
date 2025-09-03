@@ -1,0 +1,171 @@
+ body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      text-align: center;
+    }
+
+    th {
+      color: black !important;
+    }
+
+
+
+    .filter-container1 {
+      margin: 20px 0;
+    }
+
+    #custName {
+      padding: 10px !important;
+      width: 300px;
+      font-size: 15px !important;
+      border: 2px solid #333;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #003865;
+      color: #ffffff;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .pagination {
+      margin: 20px 0;
+    }
+
+    .pagination button {
+      padding: 10px;
+      margin: 5px;
+      border: none;
+      background: #333;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .pagination button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    .filter-container1 {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    #filterType {
+      padding: 8px;
+      border-radius: 5px;
+    }
+
+
+    header.finished_jobs {
+      font-size: 20px !important;
+      padding: 30px;
+      justify-content: center;
+    }
+
+    .finished_jobs a {
+      font-size: 20px !important;
+    }
+
+    h1.h1 {
+      font-size: 20px;
+    }
+
+    div#finished-jobs-container {
+      overflow: auto;
+    }
+
+    .pagination {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    #pageNumber {
+      font-weight: bold;
+      min-width: 100px;
+      text-align: center;
+    }
+
+
+    .search-export-bar {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px auto;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      padding: 10px;
+      width: 300px;
+      font-size: 16px;
+      border: 2px solid #007bff;
+      border-radius: 6px;
+    }
+
+    .export-btn {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .export-btn:hover {
+      background-color: #218838;
+    }
+
+    .content {
+  flex: 0;
+  /* Pushes footer to the bottom */
+}

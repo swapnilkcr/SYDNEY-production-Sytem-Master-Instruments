@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Add new Job{% endblock %}
+
+{% block head %}
+<script src="/static/JS/clock.js"></script>
+<script src="/static/JS/add_job.js"></script>
+
+<link rel="stylesheet" href="/static/CSS/add_job.css">
+
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <fieldset class="form-section">
+    <div class="form1">
+      <header class="page-header">Add New Job</header>
+      <form id="jobForm">
+
+        <div class="form-group">
+          <label for="inputDate">INPUT DATE</label>
+          <input type="date" id="inputDate">
+        </div>
+
+
+        <div class="form-group">
+          <label for="pn">Production Number</label>
+          <input type="text" name="ProductionNumber" id="pn" placeholder="Scan or enter Production Number (PN)" required
+            autofocus>
+        </div>
+
+
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="excludeSaveTime">
+          <label class="form-check-label fw-semibold text-primary" for="excludeSaveTime">
+            Special Job <small class="text-muted">(Exclude Save Time)</small>
+          </label>
+        </div>
+
+        <div class="form-group production-ready-date">
+          <label for="productionReadyDate">Production Ready Date</label>
+          <input type="date" id="productionReadyDate">
+        </div>
+
+
+
+        <div class="form-group">
+          <label for="draw-no">Drawing Number</label>
+          <input type="text" name="DrawingNo" id="draw-no" placeholder="Enter DrawingNo" oninput="autoFillCDraw()">
+          <div id="draw-fetch-msg" class="fetch-msg" style="display: none;">Data auto-filled from Drawing Number.</div>
+
+
+        </div>
+
+        <div class="form-group">
+          <label for="no-cell">No/Cell</label>
+          <input type="text" name="BatteryName" id="no-cell" placeholder="Enter BatteryName" oninput="autoFillCCells()">
+        </div>
+
+
+
+        <div class="form-group">
+          <label for="requ-date">Required Date</label>
+          <input type="date" id="requ-date">
+        </div>
+
+        <div class="form-group">
+          <label for="cust">Customer</label>
+          <input type="text" name="cust" id="cust" placeholder="Enter customer name">
+        </div>
+
+        <div class="form-group">
+          <label for="stock-code">Stock code</label>
+          <input type="text" id="stock-code" placeholder="Enter StockCode" oninput="autoFillStockCode()">
+        </div>
+
+        <div class="form-group">
+          <label for="qty">Quantity</label>
+          <input type="number" id="qty" placeholder="Enter Quantity">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="cell-code">Cell code</label>
+          <input type="text" id="cell-code" placeholder="Enter cellcode">
+        </div>
+
+        <div class="form-group">
+          <label for="b-price">B$</label>
+          <input type="number" id="b-price" step="0.01" oninput="autoFillCB$()">
+        </div>
+
+        <div class="form-group">
+          <label for="order-no">Order no</label>
+          <input type="number" id="order-no" placeholder="Enter Order number">
+        </div>
+
+        <div class="form-group">
+          <label for="model">Model</label>
+          <input type="text" name="Model" id="model">
+        </div>
+
+        <div class="form-group">
+          <label for="Volts">Volts</label>
+          <input type="number" id="Volts" step="0.01" oninput="calculateWH()" placeholder="Enter Volts">
+        </div>
+
+        <div class="form-group">
+          <label for="ah">AH</label>
+          <input type="number" id="ah" step="0.01" oninput="calculateWH()" placeholder="Enter Ah value">
+        </div>
+
+        <div class="form-group">
+          <label for="wh">WH</label>
+          <input type="number" id="wh" placeholder="Watt-Hours" readonly>
+        </div>
+
+        <div class="form-group">
+          <label for="chem">CHEM</label>
+          <input type="text" id="chem" placeholder="Enter CHEM">
+        </div>
+
+        <div class="form-group">
+          <label for="structure">Structure</label>
+          <input type="text" name="structure" id="structure">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="staff">Staff</label>
+          <input type="text" id="staff">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="workhr">Work HR</label>
+          <input type="text" id="workhr">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="HRPP">HR/PP</label>
+          <input type="text" id="HRPP">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="endDate">End Date</label>
+          <input type="date" id="endDate">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="testTime">TEST TIME</label>
+          <input type="text" id="testTime">
+        </div>
+
+        <div class="form-group">
+          <label for="av">AV</label>
+          <input type="number" id="av" step="0.01" oninput="autoFillCav()">
+        </div>
+
+        <div class="form-group">
+          <label for="s-price">S$</label>
+          <input type="number" id="s-price" step="0.01" oninput="autoFillCS$()" placeholder="Enter S$">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="CDraw">CDraw</label>
+          <input type="text" id="CDraw" placeholder="Auto-filled from DrawingNo" readonly>
+        </div>
+
+        <div class="form-group hidden">
+          <label for="CCells">C-cells</label>
+          <input type="text" id="CCells" placeholder="Auto-filled from No/cells" readonly>
+        </div>
+
+        <div class="form-group hidden">
+          <label for="Cav">C-AV</label>
+          <input type="number" id="Cav" placeholder="Auto-filled from AV" step="0.01" readonly>
+        </div>
+
+        <div class="form-group hidden">
+          <label for="CB$">C-B$</label>
+          <input type="number" id="CB$" placeholder="Auto-filled from B$" step="0.01" readonly>
+        </div>
+
+        <div class="form-group hidden">
+          <label for="CS$">C-S$</label>
+          <input type="number" id="CS$" placeholder="Auto-filled from S$" step="0.01" readonly>
+        </div>
+
+        <div class="form-group hidden">
+          <label for="CSTcode">C-STCode</label>
+          <input type="text" id="CSTcode" placeholder="Auto-filled from StockCode">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="discount">Discount</label>
+          <input type="text" id="discount" step="0.01">
+        </div>
+
+        <div class="form-group">
+          <label for="salesman">Salesman</label>
+          <input type="text" id="salesman">
+        </div>
+
+        <div class="form-group hidden">
+          <label for="customer-code">Customer Code</label>
+          <input type="text" id="customer-code">
+        </div>
+
+        <div class="form-group">
+          <label for="orderDate">Order Date</label>
+          <input type="date" id="orderDate">
+        </div>
+
+        <button type="submit" id="submitButton">Submit</button>
+      </form>
+    </div>
+  </fieldset>
+
+</div>
+
+{% endblock %}

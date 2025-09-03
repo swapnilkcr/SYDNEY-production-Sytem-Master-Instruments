@@ -1,0 +1,84 @@
+/* Page */
+.form-wrapper {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+label {
+  display: block;
+  margin-top: 14px;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="file"] {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="file"]:focus {
+  border-color: #0d6efd;
+}
+
+/* Preview grid */
+.preview-container {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+}
+
+.image-container {
+  position: relative;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.image-container img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.image-container input[type="checkbox"] {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  transform: scale(1.2);
+}
+
+/* Buttons */
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.download { background: #0d6efd; }
+.btn.download:hover { background: #0b5ed7; }
+
+.btn.delete { background: #dc3545; }
+.btn.delete:hover { background: #bb2d3b; }

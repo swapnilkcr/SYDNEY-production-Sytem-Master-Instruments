@@ -1,0 +1,228 @@
+    body {
+        background-image: none !important;
+    }
+
+    .nav1 a {
+        color: black;
+        font-weight: 600;
+        padding-top: 15px;
+    }
+
+    .nav1 {
+        background: white !important;
+        padding: 20px !important;
+        font-size: 18px;
+        width: 100%;
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+
+    .color-box.orange,
+    .color-box.red {
+        padding: 10px;
+        border-radius: 20px;
+    }
+
+    .edit-row-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        color: darkblue;
+        transition: all 0.2s;
+    }
+
+    .edit-row-btn:hover {
+        transform: scale(1.2);
+    }
+
+    .editing-row {
+        background-color: #fff8e1 !important;
+    }
+
+    .editing-row td {
+        padding: 0 !important;
+    }
+
+    .editing-row input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    }
+
+    #edit-controls {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .btn {
+        padding: 5px 15px;
+        margin-right: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #45a049;
+    }
+
+    .btn-secondary {
+        background-color: #f44336;
+        color: white;
+        border: 1px solid #d32f2f;
+    }
+
+    input.error {
+        border-color: #ff0000 !important;
+        background-color: #ffeeee;
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        animation: slide-in 0.5s ease-out;
+    }
+
+    .toast-success {
+        background-color: #4CAF50;
+    }
+
+    .toast-error {
+        background-color: #f44336;
+    }
+
+    .toast-info {
+        background-color: #2196F3;
+    }
+
+    .fade-out {
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+
+    @keyframes slide-in {
+        from {
+            transform: translateX(100%);
+        }
+
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    input.error {
+        border: 2px solid #ff4444 !important;
+        background-color: #ffeeee;
+        animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        20%,
+        60% {
+            transform: translateX(-5px);
+        }
+
+        40%,
+        80% {
+            transform: translateX(5px);
+        }
+    }
+
+    .right_link {
+        display: flex;
+        gap: 20px;
+    }
+
+    .right_link a:hover {
+        color: #f39c12;
+    }
+
+    .backorder-row {
+        background-color: #ffe066 !important;
+        border: 2px solid red;
+    }
+
+    /* PN_DATA Table Styling */
+    /* PN_DATA table - styled same as Records table
+    #pn-data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 15px;
+        border: 1px solid black;
+    }
+
+    
+    #pn-data-table th {
+        background-color: #003865 !important;
+        color: white;
+        font-size: 15px;
+        font-family: sans-serif;
+        font-weight: 300;
+        padding: 8px;
+        text-align: left;
+        border: 1px solid black;
+    }
+
+    
+    #pn-data-table td {
+        font-size: 15px;
+        padding: 8px;
+        text-align: left;
+        border: 1px solid black;
+    }
+
+    
+    #pn-data-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+   
+    #pn-data-table tr:hover {
+        background-color: #f1f1f1;
+    }
+*/
+
+    #pn-data-table .edit-row-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s ease;
+    }
+
+    #pn-data-table .edit-row-btn:hover {
+        background: #0056b3;
+    }
+
+    /* Highlight rows near/past due */
+    tr.date-warning {
+        background-color: #fff4e5 !important;
+    }
+
+    tr.date-critical {
+        background-color: #ffe5e5 !important;
+    }

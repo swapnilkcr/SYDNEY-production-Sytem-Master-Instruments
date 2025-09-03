@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Jobs Clock-In Clock-Out{% endblock %}
+
+{% block content %}
+<!-- Main content -->
+<main class="page-container py-4">
+	<div class="container">
+
+		<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between mb-3">
+			<h1 class="h4 m-0">Sydney production system</h1>
+		</div>
+
+		<!-- Staff & Job selection -->
+		<div class="row g-3">
+			<div class="col-md-6">
+				<label for="staff-select" class="form-label">Select Staff:</label>
+				<select id="staff-select" class="form-select">
+					<option value="">-- Select Staff --</option>
+				</select>
+			</div>
+			<div class="col-md-6">
+				<label for="job-select" class="form-label">Select Job:</label>
+				<select id="job-select" class="form-select">
+					<option value="">-- Select Job --</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="row g-3" id="task-selection">
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile welding" data-task="welding">
+					<div class="task-text">Welding</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile shrinking" data-task="shrinking">
+					<div class="task-text">Shrinking</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile gluing" data-task="gluing">
+					<div class="task-text">Gluing</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile soldering" data-task="soldering">
+					<div class="task-text">Soldering</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile packaging" data-task="packaging">
+					<div class="task-text">Packaging</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile machineshop" data-task="machineshop">
+					<div class="task-text">Machine shop</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile QC" data-task="QC">
+					<div class="task-text">QC</div>
+				</div>
+			</div>
+			<div class="col-md-3 col-sm-6">
+				<div class="task-tile express" data-task="express">
+					<div class="task-text">Express</div>
+				</div>
+			</div>
+		</div>
+
+
+
+
+		<!-- Action buttons -->
+		<div class="d-flex flex-wrap gap-2 justify-content-center my-4">
+			<button id="start-btn" type="button" class="btn btn-success">Start</button>
+			<button id="stop-btn" type="button" class="btn btn-danger">Stop</button>
+			<button id="finish-btn" data-role="admin-only" type="button" class="btn btn-warning">End Job</button>
+			<button id="view-running-jobs-btn" type="button" class="btn btn-primary" data-bs-toggle="modal"
+				data-bs-target="#taskOptionsModal">
+				View Running Jobs
+			</button>
+
+			<button id="jobs-status-btn" class="btn btn-primary">Jobs Status</button>
+
+		</div>
+		<div id="message" style="margin:10px; font-weight:bold;"></div>
+
+		<!-- Running Jobs Table -->
+		<div id="running-jobs-section" style="margin-top: 20px; display: none;">
+			<h4 id="running-jobs-title">Running Jobs</h4>
+			<table id="running-jobs-table" class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>Staff</th>
+						<th>Job ID</th>
+						<th>Customer</th>
+						<th>Drawing No</th>
+						<th>Task</th>
+						<th>Start Time</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		<!-- Records Table -->
+		<div class="table-container">
+			<table id="records-table" class="table table-bordered table-striped">
+				<thead></thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<!-- Pagination controls (optional, if you want paging like View button) -->
+		<div id="pagination-controls" style="display:none;">
+			<button id="prev-page">Previous</button>
+			<span id="page-info"></span>
+			<button id="next-page">Next</button>
+		</div>
+
+	</div>
+</main>
+
+
+
+<!-- Modal: Add Staff -->
+<div class="modal fade" id="modal-staff">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Add New Staff</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<input type="text" id="new-staff-name" class="form-control" placeholder="Enter Staff Name" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" onclick="addStaff()">Add Staff</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Task Options Modal -->
+<!-- Task Options Modal (Bootstrap style) -->
+<div class="modal fade" id="taskOptionsModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content tasks">
+
+			<div class="modal-header">
+				<h5 class="modal-title">Select a Task</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+
+			<div class="modal-body">
+				<div class="row g-3 text-center">
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="welding">
+							<img src="/static/Images/welding.png" class="img-fluid rounded mb-2" alt="Welding">
+							<div class="fw-bold">Welding</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="shrinking">
+							<img src="/static/Images/shrinking.png" class="img-fluid rounded mb-2" alt="Shrinking">
+							<div class="fw-bold">Shrinking</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="packaging">
+							<img src="/static/Images/packaging.png" class="img-fluid rounded mb-2" alt="Packaging">
+							<div class="fw-bold">Packaging</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="soldering">
+							<img src="/static/Images/soldering.png" class="img-fluid rounded mb-2" alt="Soldering">
+							<div class="fw-bold">Soldering</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="gluing">
+							<img src="/static/Images/gluing.jpg" class="img-fluid rounded mb-2" alt="Gluing">
+							<div class="fw-bold">Gluing</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="machineshop">
+							<img src="static/Images/machine.png" class="img-fluid rounded mb-2" alt="Machine Shop">
+							<div class="fw-bold">Machine Shop</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="QC">
+							<img src="static/Images/qc.jpg" class="img-fluid rounded mb-2" alt="QC">
+							<div class="fw-bold">QC</div>
+						</div>
+					</div>
+
+					<div class="col-md-4 col-sm-6 1">
+						<div class="task-tile-option" data-task="Express">
+							<img src="static/Images/express.jpg" class="img-fluid rounded mb-2" alt="Express">
+							<div class="fw-bold">Express</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+<!-- Modal: Finish Job Result -->
+<div class="modal fade" id="finishResultModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-warning">
+				<h5 class="modal-title">Job Finished</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body" id="finishResultBody">
+				<!-- Filled dynamically -->
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button id="moveJobInModalBtn"  type="button" class="btn btn-primary">
+				Move to Finished Jobs
+			</button>
+			</div>
+
+			
+		</div>
+	</div>
+</div>
+
+{% endblock %}

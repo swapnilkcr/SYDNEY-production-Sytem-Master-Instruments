@@ -1,0 +1,396 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ActiveReportsLayout Version="3.2" PrintWidth="15713.8" DocumentName="ARNet Document" ScriptLang="VB.NET" MasterReport="0">
+  <StyleSheet>
+    <Style Name="Normal" Value="font-family: Arial; font-style: normal; text-decoration: none; font-weight: normal; color: Black; font-size: 8pt; ddo-char-set: 204" />
+    <Style Name="Heading1" Value="font-size: 16pt; font-weight: bold" />
+    <Style Name="Heading2" Value="font-family: Times New Roman; font-size: 14pt; font-weight: bold; font-style: italic" />
+    <Style Name="Heading3" Value="font-size: 13pt; font-weight: bold" />
+  </StyleSheet>
+  <Sections>
+    <Section Type="ReportHeader" Name="rhHeader" Height="0" BackColor="16777215" />
+    <Section Type="PageHeader" Name="phHeader" Height="5355" BackColor="16777215">
+      <Control Type="AR.Shape" Name="Shape6" Left="0" Top="4770" Width="15570" Height="450" BackColor="0" BackStyle="1" Shape="2" RoundingRadius="50" />
+      <Control Type="AR.Image" Name="picReportImage" Left="90" Top="0" Width="3240" Height="1530" LineColor="16777215" LineWeight="0" />
+      <Control Type="AR.Shape" Name="Shape1" Left="810" Top="2970" Width="5040" Height="1440" BackColor="16777215" Shape="2" RoundingRadius="9.999999" />
+      <Control Type="AR.Label" Name="Label1" Left="900" Top="2700" Width="1440" Height="285" Caption="Sold To:" HyperLink="" Style="color: Black; font-weight: bold; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label2" Left="6030" Top="2700" Width="1440" Height="285" Caption="Deliver To:" HyperLink="" Style="color: Black; font-weight: bold" />
+      <Control Type="AR.Shape" Name="Shape2" Left="5940" Top="2970" Width="4770.72" Height="1440" BackColor="16777215" Shape="2" RoundingRadius="9.999999" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DELIVERY_NOTE_11" DataField="DRS_TRANS_DELIVERY_NOTE_1" Left="6030" Top="3060" Width="4680" Height="270.72" Text="txtDRS_TRANS_DELIVERY_NOTE_11" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DELIVERY_NOTE_21" DataField="DRS_TRANS_DELIVERY_NOTE_2" Left="6030" Top="3330" Width="4680" Height="270.72" Text="txtDRS_TRANS_DELIVERY_NOTE_21" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DELIVERY_NOTE_31" DataField="DRS_TRANS_DELIVERY_NOTE_3" Left="6030" Top="3600" Width="4680" Height="270.72" Text="txtDRS_TRANS_DELIVERY_NOTE_31" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DELIVERY_NOTE_41" DataField="DRS_TRANS_DELIVERY_NOTE_4" Left="6030" Top="3870" Width="4680" Height="270.72" Text="txtDRS_TRANS_DELIVERY_NOTE_41" Style="color: Black" />
+      <Control Type="AR.Label" Name="Label4" Left="11700" Top="900" Width="1440" Height="270" Caption="Date:" HyperLink="" Style="color: Black; font-weight: bold; text-align: left; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_TRANS_DATE1" DataField="DRS_TRANS_TRANS_DATE" Left="13140" Top="900" Width="2430" Height="270" Text="txtDRS_TRANS_TRANS_DATE1" Style="color: Black; text-align: right; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label5" Left="11700" Top="1170" Width="1440" Height="270" Caption="Customer Code:" HyperLink="" Style="color: Black; font-weight: bold; text-align: left; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label10" Left="90" Top="4950" Width="990" Height="270" Caption="Stock Code" HyperLink="" Style="color: White; font-size: 8pt; font-weight: bold; text-align: center; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label11" Left="3510" Top="4950" Width="1260" Height="270" Caption="Description" HyperLink="" Style="color: White; font-size: 8pt; font-weight: bold; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCOMPANY_NAME" Left="3510" Top="90" Width="7920" Height="270" Text="txtCOMPANY_NAME" Style="color: Black; font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCOMPANY_STREET" Left="3510" Top="360" Width="7920" Height="270" Text="txtCOMPANY_STREET" Style="color: Black; font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCOMPANY_SUBURB" Left="3510" Top="630" Width="7920" Height="270" Text="txtCOMPANY_SUBURB" Style="font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCOMPANY_CITY_STATE_POSTCODE" Left="3510" Top="900" Width="7920" Height="270" Text="txtCOMPANY_CITY_STATE_POSTCODE" Style="font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCOMPANY_ACN" Left="3510" Top="1170" Width="7920" Height="270" Text="txtCOMPANY_ACN" Style="color: Black; font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label15" Left="11700" Top="1440" Width="1440" Height="270" Caption="Your Order No:" HyperLink="" Style="color: Black; font-weight: bold; text-align: left; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_CUSTOMER_CODE1" DataField="TRANS_LINES_SOLD_TO_CUSTOMER_CODE" Left="13140" Top="1170" Width="2430" Height="270" Text="txtDRS_TRANS_CUSTOMER_CODE1" Style="text-align: right" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DETAIL1" DataField="DRS_TRANS_DETAIL" Left="13140" Top="1440" Width="2430" Height="270" Text="txtDRS_TRANS_DETAIL1" Style="text-align: right; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_DELIVERY_POSTCODE1" DataField="DRS_TRANS_DELIVERY_POSTCODE" Left="6030" Top="4140" Width="4680" Height="270.72" Text="txtDRS_TRANS_DELIVERY_POSTCODE1" Style="color: Black" />
+      <Control Type="AR.Label" Name="Label19" Left="11700" Top="4818.898" Width="1080" Height="450" Caption="Quantity Supplied" HyperLink="" Style="color: White; font-size: 8pt; font-weight: bold; text-align: right; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="lblUnitOfMeasure" Left="14760" Top="4950" Width="720" Height="270" Caption="Unit" HyperLink="" Style="color: White; font-size: 8pt; font-weight: bold; text-align: right; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCopyOnly" Left="90" Top="1620" Width="3240" Height="540" Text="COPY ONLY" Style="color: Black; font-size: 18pt; text-align: center; ddo-char-set: 1" />
+      <Control Type="AR.Line" Name="Line2" X1="0" Y1="5310" X2="15570" Y2="5310" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_CUSTOMER_NAME1" DataField="TRANS_LINES_SOLD_TO_CUSTOMER_NAME" Left="900" Top="3060" Width="4950.72" Height="270.72" Text="txtCUSTOMER_CODE_DRS_MASTER_CUSTOMER_NAME1" Style="color: Black; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_11" DataField="TRANS_LINES_SOLD_TO_ADDRESS_1" Left="900" Top="3330" Width="4950" Height="270" Text="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_11" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_21" DataField="TRANS_LINES_SOLD_TO_ADDRESS_2" Left="900" Top="3600" Width="4950" Height="270" Text="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_21" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_31" DataField="TRANS_LINES_SOLD_TO_ADDRESS_3" Left="900" Top="3870" Width="4950" Height="270" Text="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_31" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_41" DataField="TRANS_LINES_SOLD_TO_ADDRESS_4" Left="900" Top="4140" Width="3870.72" Height="270.72" Text="txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_41" Style="color: Black" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_POSTCODE1" DataField="TRANS_LINES_SOLD_TO_POST_CODE" Left="4770.142" Top="4140.284" Width="1080" Height="270" Text="txtCUSTOMER_CODE_DRS_MASTER_POSTCODE1" Style="color: Black" />
+      <Control Type="AR.ReportInfo" Name="ReportInfo2" Left="12870" Top="2340" Width="2700" Height="270" FormatString="Page {PageNumber} of {PageCount}" Style="color: Black; text-align: right; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Shape" Name="Shape8" Left="11700" Top="90" Width="3870" Height="630" BackColor="0" BackStyle="1" Shape="2" RoundingRadius="50" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_REFERENCE_NBR1" DataField="DRS_TRANS_REFERENCE_NBR" Left="11700" Top="450" Width="3870" Height="270" Text="txtDRS_TRANS_REFERENCE_NBR1" Style="color: White; font-size: 10pt; font-weight: bold; text-align: center; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="Label6" Left="11700" Top="1710" Width="1440" Height="270" Caption="ABN Number:" HyperLink="" Style="color: Black; font-weight: bold; text-align: left; ddo-char-set: 1" />
+      <Control Type="AR.Field" Name="txtCUSTOMER_CODE_DRS_MASTER_ABN_VAT_NBR1" DataField="CUSTOMER_CODE_DRS_MASTER_ABN_VAT_NBR" Left="13140" Top="1710" Width="2430.72" Height="270.72" Text="txtCUSTOMER_CODE_DRS_MASTER_ABN_VAT_NBR1" Style="text-align: right" />
+      <Control Type="AR.Field" Name="txtCOMPANY_ABN" Left="3510" Top="1440" Width="7920" Height="270" Text="txtCOMPANY_ABN" Style="color: Black; font-size: 9pt; font-weight: bold; text-align: center; vertical-align: middle; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="lblPackingSlipHeader" Left="11805.17" Top="162.1417" Width="3674.835" Height="288" Caption="Packing Slip" Style="background-color: Black; color: White; font-size: 10pt; font-weight: bold; text-align: center; vertical-align: middle" />
+    </Section>
+    <Section Type="GroupHeader" Name="ghNoData" Visible="0" Height="0" BackColor="16777215">
+      <Control Type="AR.Field" Name="txtNoData" Left="1643.3" Top="180" Width="12427.2" Height="285" Text="No Records Matching the Selection were Found to Print." Style="color: Blue; text-align: center" />
+    </Section>
+    <Section Type="GroupHeader" Name="ghPackingSlip" Height="0" DataField="DRS_TRANS_REFERENCE_NBR" BackColor="16777215" />
+    <Section Type="Detail" Name="dtDetail1" Height="630" BackColor="16777215" CanShrink="1">
+      <Control Type="AR.Field" Name="txtDescription" Left="3510" Top="28.8" Width="5400" Height="288" Text="txtDescription" CanShrink="1" Style="color: Black; ddo-char-set: 1" PaddingTop="3" PaddingBottom="1" />
+      <Control Type="AR.Field" Name="txtStockCode" Left="90" Top="28.8" Width="3330" Height="288" Text="txtStockCode" CanShrink="1" PaddingTop="3" PaddingBottom="1" />
+      <Control Type="AR.RTF" Name="rtfTextOrBlock" DataField="TRANS_LINES_TEXT_FIELD" Left="90" Top="316.8" Width="15390" Height="288" CanShrink="1" AutoReplaceFields="1" BackStyle="0">
+        <Data><![CDATA[00000000000000007B5C727466315C616E73695C616E7369637067313235325C64656666307B5C666F6E7474626C7B5C66305C6673776973735C66636861727365743020417269616C3B7D7B5C66315C666E696C5C66636861727365743020417269616C3B7D7D0D0A5C766965776B696E64345C7563315C706172645C6C616E67313033335C66305C667331362072747874546578745C66315C667332305C7061720D0A7D0D0A]]></Data>
+      </Control>
+      <Control Type="AR.Field" Name="txtUnitOfMeasure" DataField="UNBOUND_SALES_UNIT" Left="14760" Top="28.8" Width="720" Height="288" Text="txtUnitOfMeasure" CanShrink="1" Style="color: Black; text-align: right; ddo-char-set: 1" PaddingTop="3" PaddingBottom="1" />
+      <Control Type="AR.Field" Name="txtQuantitySupplied" Left="10980.28" Top="0" Width="1800" Height="288" Text="txtQuantitySupplied" CanShrink="1" Style="color: Black; text-align: right; ddo-char-set: 1" PaddingTop="3" PaddingBottom="1" />
+      <Control Type="AR.Field" Name="txtPrintDescription1" DataField="PRINT_DESCRIPTION_1" Left="90.14173" Top="0" Width="1440" Height="288" Text="txtPrintDescription1" />
+    </Section>
+    <Section Type="GroupFooter" Name="gfPackingSlip" PrintAtBottom="1" Height="810" BackColor="16777215" KeepTogether="1">
+      <Control Type="AR.Line" Name="Line1" X1="0" Y1="0" X2="15570" Y2="0" />
+      <Control Type="AR.Shape" Name="Shape5" Left="0" Top="180" Width="5490" Height="450" BackColor="0" BackStyle="1" Shape="2" RoundingRadius="50" />
+      <Control Type="AR.Field" Name="txtDRS_TRANS_REFERENCE_NBR2" DataField="DRS_TRANS_REFERENCE_NBR" Left="1643.528" Top="285.1654" Width="3870.72" Height="270.72" Text="txtDRS_TRANS_REFERENCE_NBR2" Style="color: White; font-size: 10pt; font-weight: bold; text-align: center; ddo-char-set: 1" />
+      <Control Type="AR.Label" Name="lblPackingSlipFooter" Left="113.3858" Top="285.1654" Width="1530.142" Height="288" Caption="Packing Slip" Style="background-color: Black; color: White; font-size: 10pt; font-weight: bold; text-align: left; vertical-align: middle" />
+    </Section>
+    <Section Type="GroupFooter" Name="gfNoData" Height="0" BackColor="16777215" />
+    <Section Type="PageFooter" Name="pfFooter" Height="0" BackColor="16777215" />
+    <Section Type="ReportFooter" Name="rfFooter" Height="0" BackColor="16777215" />
+  </Sections>
+  <ReportComponentTray />
+  <DataSources>
+    <SqlDbDataSource ConnectF="nl4yonjUVqbMURrLCfOLPmMBCgiIDW/UujV3AvxMkGobcUcsmeQWuYfiHZeZoWde/brTfvuC3ZXhGou6zBUFon38k80/Jt/sIHnf30KnagLPrSplL0rcBQ==" SQL="EXEC RPT_JOBRP020 &#xD;&#xA; '&lt;%COMPANY_CODE|Company|TENCIA1%&gt;', &#xD;&#xA; '&lt;%P_DRS_TRANS_REFERENCE_NBR|Reference|110010%&gt;', &#xD;&#xA; '&lt;%DRS_TRANS_REFERENCE_DUPLICATE|Duplicate|1%&gt;'" CommandTimeout="100" />
+  </DataSources>
+  <Script><![CDATA['------------------------
+' Job Debtor Invoice
+' 
+'------------------------
+
+'
+' variables required for report
+'
+Dim _hasData As Boolean = True
+Dim _lineType As Object = Nothing
+Dim _stockCode As Object = Nothing
+Dim _description As Object = Nothing
+Dim _stockQty As Object = Nothing
+Dim _quantityOrdered As Object = Nothing
+Dim _assetCode As Object = Nothing
+Dim _assetQty As Object = Nothing
+Dim _incExpCode As Object = Nothing
+Dim _jobCode As Object = Nothing
+Dim _enteredQty As Object = Nothing
+Dim _lineNumber As Object = Nothing
+Dim _transType As Object = Nothing
+Dim _revValue As Integer = -1
+Dim _seqNbr As Object = Nothing
+
+'--------------------------------------
+' Set variables here for layout changes
+'--------------------------------------
+
+' Show 'COPY ONLY' - set to true if required
+Dim _showCopyOnly As Boolean = False
+
+' Show Unit of Measure - set to false if not required
+Dim _showUnitOfMeasure As Boolean = True
+
+'If user doesn't want to print child address details and code...
+' 1. replace "TRANS_LINES_SOLD_TO_CUSTOMER_NAME" with "CUSTOMER_CODE_DRS_MASTER_CUSTOMER_NAME" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_CUSTOMER_NAME1
+' 2. replace "TRANS_LINES_SOLD_TO_ADDRESS_1" with "CUSTOMER_CODE_DRS_MASTER_ADDRESS_1" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_11 
+' 3. replace "TRANS_LINES_SOLD_TO_ADDRESS_2" with "CUSTOMER_CODE_DRS_MASTER_ADDRESS_2" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_21 
+' 4. replace "TRANS_LINES_SOLD_TO_ADDRESS_3" with "CUSTOMER_CODE_DRS_MASTER_ADDRESS_3" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_31 
+' 5. replace "TRANS_LINES_SOLD_TO_ADDRESS_4" with "CUSTOMER_CODE_DRS_MASTER_ADDRESS_4" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_41 
+' 6. replace "TRANS_LINES_SOLD_TO_POST_CODE" with "DRS_MASTER_CHILD_POSTCODE" as the DataField for phHeader textbox txtCUSTOMER_CODE_DRS_MASTER_POSTCODE1 
+' 7. replace "TRANS_LINES_SOLD_TO_CUSTOMER_CODE" with "DRS_TRANS_CUSTOMER_CODE" as the DataField for phHeader textbox txtDRS_TRANS_CUSTOMER_CODE1 
+
+Sub ActiveReport_DataInitialize()
+	rpt.Fields.Add("UNBOUND_CONTACT_NAME")
+	rpt.Fields.Add("UNBOUND_CUSTOMER_NAME")
+    rpt.Fields.Add("UNBOUND_SALES_UNIT")
+    rpt.Fields.Add("UNBOUND_SOLD_TO_ADDRESS_1")
+    rpt.Fields.Add("UNBOUND_SOLD_TO_ADDRESS_2")
+    rpt.Fields.Add("UNBOUND_SOLD_TO_ADDRESS_3")
+    rpt.Fields.Add("UNBOUND_SOLD_TO_ADDRESS_4")
+    rpt.Fields.Add("UNBOUND_SOLD_TO_POST_CODE")
+    rpt.Fields.Add("UNBOUND_CUSTOMER_CODE")
+End Sub
+
+Sub ActiveReport_NoData()
+    _hasData = False
+    HideReportGroups()
+End Sub
+
+Function ActiveReport_FetchData(ByVal EOF As Boolean) As Boolean
+    If (Not EOF) Then
+        '
+        'initialize
+        '
+		rpt.Fields("UNBOUND_CONTACT_NAME").Value = ""
+		rpt.Fields("UNBOUND_CUSTOMER_NAME").Value = ""
+        rpt.Fields("UNBOUND_SALES_UNIT").Value = ""
+		rpt.Fields("UNBOUND_SOLD_TO_ADDRESS_1").Value = ""
+		rpt.Fields("UNBOUND_SOLD_TO_ADDRESS_2").Value = ""
+		rpt.Fields("UNBOUND_SOLD_TO_ADDRESS_3").Value = ""
+		rpt.Fields("UNBOUND_SOLD_TO_ADDRESS_4").Value = ""
+		rpt.Fields("UNBOUND_SOLD_TO_POST_CODE").Value = ""
+		rpt.Fields("UNBOUND_CUSTOMER_CODE").Value = ""
+		
+        '
+        'used in detail format
+        '
+        _lineType = rpt.Fields("TRANS_LINES_LINE_TYPE").Value
+        _stockCode = rpt.Fields("TRANS_LINES_STOCK_CODE").Value
+        _description = rpt.Fields("PRINT_DESCRIPTION_1").Value
+        _stockQty = rpt.Fields("TRANS_LINES_STOCK_QTY").Value
+        _assetCode = rpt.Fields("TRANS_LINES_ASSET_CODE").Value
+        _assetQty = rpt.Fields("TRANS_LINES_ASSET_QTY").Value
+        _incExpCode = rpt.Fields("TRANS_LINES_INC_EXP_CODE").Value
+		_jobCode = rpt.Fields("DRS_TRANS_JOB_CODE").Value
+        _enteredQty = rpt.Fields("TRANS_LINES_ENTERED_QTY").Value
+        _lineNumber = rpt.Fields("TRANS_LINES_LINE_NBR").Value
+
+        If (TypeOf _lineType Is System.DBNull) Then _lineType = Nothing
+        If (TypeOf _stockCode Is System.DBNull) Then _stockCode = Nothing
+        If (TypeOf _description Is System.DBNull) Then _description = Nothing
+        If (TypeOf _stockQty Is System.DBNull) Then _stockQty = 0D
+        If (TypeOf _quantityOrdered Is System.DBNull) Then _quantityOrdered = 0D
+        If (TypeOf _assetCode Is System.DBNull) Then _assetCode = Nothing
+        If (TypeOf _assetQty Is System.DBNull) Then _assetQty = 0D
+        If (TypeOf _incExpCode Is System.DBNull) Then _incExpCode = Nothing
+		If (TypeOf _jobCode Is System.DBNull) Then _jobCode = Nothing
+        If (TypeOf _enteredQty Is System.DBNull) Then _enteredQty = 0D
+        If (TypeOf _lineNumber Is System.DBNull) Then _lineNumber = Nothing
+		
+        '
+        ' measure unit
+        '
+        Dim unit As Object = Nothing
+        unit = rpt.Fields("STK_LOCN_MASTER_SALES_UNIT").Value
+        If NotNullValue(unit) = False Then
+            unit = rpt.Fields("STK_MASTER_SALES_UNIT").Value
+            If NotNullValue(unit) = False Then
+                unit = rpt.Fields("STK_MASTER_UNIT_OF_MEASURE").Value
+            End If
+        End If
+        rpt.Fields("UNBOUND_SALES_UNIT").Value = unit
+        
+    End If
+
+    Return EOF
+End Function
+
+Sub ActiveReport_ReportStart()
+	
+    'output format
+    CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_TRANS_DATE1"), TextBox).OutputFormat = Helper.DateFormat()
+    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).OutputFormat = Helper.QuantityFormat(True)
+	
+	' Conditionally show 'Copy Only' 
+    If (_showCopyOnly = True) Then
+        CType(rpt.Sections("phHeader").Controls("txtCopyOnly"), TextBox).Visible = True
+    Else
+        CType(rpt.Sections("phHeader").Controls("txtCopyOnly"), TextBox).Visible = False
+    End If
+	
+    ' Clear all report control values
+    helper.ClearValues(rpt, "txtCopyOnly", "txtDocumentName", "txtFooterDocumentName")
+
+    ' Conditionally show 'Unit of Measure'
+    If (_showUnitOfMeasure) Then
+        CType(rpt.Sections("phHeader").Controls("lblUnitOfMeasure"), Label).Visible = True
+        CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True
+    Else
+        CType(rpt.Sections("phHeader").Controls("lblUnitOfMeasure"), Label).Visible = False
+        CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = False
+    End If
+
+    ' Output PageHeader information
+    CType(rpt.Sections("phHeader").Controls("picReportImage"), Picture).Image = System.Drawing.Image.FromStream(Helper.ReportImageStream())
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_NAME"), TextBox).Value = Helper.CompanyName()
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_STREET"), TextBox).Value = Helper.CompanyStreet()
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_SUBURB"), TextBox).Value = Helper.CompanySuburb()
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_CITY_STATE_POSTCODE"), TextBox).Value = Helper.CompanyCity() + "  " + Helper.CompanyStateAndPostcode()
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_ACN"), TextBox).Value = Helper.CompanyACN()
+    CType(rpt.Sections("phHeader").Controls("txtCOMPANY_ABN"), TextBox).Value = Helper.CompanyABN()
+End Sub
+
+Sub dtDetail1_Format()
+    If (_hasData) Then
+        If (Not _lineType Is Nothing) Then		
+            Select Case _lineType
+                Case "S" ' Stock Code
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _stockCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = (_revValue * _enteredQty)
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True					
+                Case "A" ' Asset Code
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _assetCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = (_revValue * _assetQty)
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True					
+                Case "E" ' Expense Code
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _incExpCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = _enteredQty
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True										
+                Case "I" ' Income Code
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _incExpCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = _enteredQty
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True		
+			
+                Case "G" ' General Ledger Code
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _incExpCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = _enteredQty
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True
+				Case "T" ' Text
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = Nothing
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = Nothing
+	                CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = Nothing
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = True
+					CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = False
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = False
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+                Case "B" ' Block Text
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = Nothing
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = Nothing
+	                CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = Nothing
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Value = Nothing
+					CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+					CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = False
+					CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = False				
+			Case "D" 'invoice line	
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Value = _jobCode
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Value = _description
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Value = (_revValue * _enteredQty)
+					CType(rpt.Sections("dtDetail1").Controls("rtfTextOrBlock"), RichTextBox).Visible = False
+					CType(rpt.Sections("dtDetail1").Controls("txtPrintDescription1"), TextBox).Visible = False
+                    CType(rpt.Sections("dtDetail1").Controls("txtStockCode"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtDescription"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtUnitOfMeasure"), TextBox).Visible = True
+                    CType(rpt.Sections("dtDetail1").Controls("txtQuantitySupplied"), TextBox).Visible = True					
+            End Select
+        End If
+    Else
+		CType(rpt.Sections("dtDetail1"), Detail).Visible = False
+    End If
+End Sub
+
+'------------------------
+' Hide Group Headers and Display the message text when No Data to print
+'------------------------
+Sub HideReportGroups()
+
+    CType(rpt.Sections("ghInvoice"), GroupHeader).Visible = False
+    CType(rpt.Sections("ghNoData"), GroupHeader).Visible = True
+    CType(rpt.Sections("gfNoData"), GroupFooter).Visible = False
+
+End Sub
+
+Sub phHeader_Format()
+
+    If Not (_hasData) Then
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_TRANS_DATE1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_CUSTOMER_CODE1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_ABN_VAT_NBR1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_CUSTOMER_NAME1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_11"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_21"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_31"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_ADDRESS_41"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCUSTOMER_CODE_DRS_MASTER_POSTCODE1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_DELIVERY_NOTE_11"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_DELIVERY_NOTE_21"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_DELIVERY_NOTE_31"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_DELIVERY_NOTE_41"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtDRS_TRANS_DELIVERY_POSTCODE1"), TextBox).Value = Nothing
+        CType(rpt.Sections("phHeader").Controls("txtCopyOnly"), TextBox).Value = Nothing
+    End If
+
+End Sub
+
+Sub AddHiddenControl(SectionName As String, HeaderSection As Boolean, ControlName As String, DataField As String, SummaryType As Boolean, SummaryGroupName As String)
+    ' This subroutine adds a hidden text box to group header or groupfooter for used in format event.
+    Dim HiddenTextBox As New GrapeCity.ActiveReports.SectionReportModel.TextBox()
+    HiddenTextBox.Name = ControlName
+    HiddenTextBox.Visible = False
+    HiddenTextBox.DataField = DataField
+    If (HeaderSection) Then
+        CType(rpt.Sections(SectionName), GroupHeader).Controls.Add(HiddenTextBox)
+    Else
+        CType(rpt.Sections(SectionName), GroupFooter).Controls.Add(HiddenTextBox)
+    End If
+    If (SummaryType) Then
+        CType(rpt.Sections(SectionName).Controls(ControlName), TextBox).SummaryFunc = GrapeCity.ActiveReports.SectionReportModel.SummaryFunc.Sum
+        CType(rpt.Sections(SectionName).Controls(ControlName), TextBox).SummaryGroup = SummaryGroupName
+        CType(rpt.Sections(SectionName).Controls(ControlName), TextBox).SummaryRunning = GrapeCity.ActiveReports.SectionReportModel.SummaryRunning.Group
+        CType(rpt.Sections(SectionName).Controls(ControlName), TextBox).SummaryType = GrapeCity.ActiveReports.SectionReportModel.SummaryType.SubTotal
+    End If
+End Sub
+
+Function NotNullValue(ReportValue As Object) As Boolean
+    If (Not ReportValue Is Nothing AndAlso Not ReportValue Is System.DBNull.Value) Then
+        Return True
+    Else
+        Return False
+    End If
+End Function
+]]></Script>
+  <PageSettings LeftMargin="562" RightMargin="562" TopMargin="562" BottomMargin="562" PaperSize="9" PaperWidth="11906" PaperHeight="16838" PaperName="" Orientation="2" />
+  <Parameters />
+</ActiveReportsLayout>

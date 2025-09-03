@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Allocate Jobs{% endblock %}
+
+{% block head %}
+    <script src="/static/JS/Jobs_allocate.js"></script>
+    <link rel="stylesheet" href="/static/CSS/Allocate_jobs.css" />
+
+{% endblock %}
+
+{% block content %}
+
+
+
+    </div>
+    <main>
+        <div class="container">
+            <div class="card-container">
+                <div class="selection-card">
+                    <h3>Available Jobs</h3>
+                    <input type="text" id="jobSearchInput" placeholder="Search jobs..."
+                        style="width: 100%; padding: 8px; margin-bottom: 10px; font-size: 16px;">
+
+                    <div class="card-grid" id="jobs-grid">
+                        <!-- Jobs will be populated here -->
+                    </div>
+                </div>
+
+                <div class="selection-card">
+                    <h3>Available Staff</h3>
+                    <div class="card-grid" id="staff-grid">
+                        <!-- Staff will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="allcbtn">
+                <button class="assign-button" onclick="assignSelected()">Assign Selected</button>
+                <button class="backorder-button" onclick="toggleBackorder()">Backorder</button>
+            </div>
+
+            <!-- Delete Staff Modal -->
+            <div id="deleteStaffModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeDeleteModal()">&times;</span>
+                    <h3>Delete Staff</h3>
+                    <label for="staffDropdown">Select staff to delete:</label>
+                    <select id="staffDropdown"></select>
+                    <br><br>
+                    <button onclick="confirmDeleteStaff()">Delete</button>
+                    <button onclick="closeDeleteModal()">Cancel</button>
+                </div>
+            </div>
+    </main>
+
+{% endblock %}

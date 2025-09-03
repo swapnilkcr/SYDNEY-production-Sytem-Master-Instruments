@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Form to PDF{% endblock %}
+
+{% block head %}
+<script src="/static/JS/formtopdf.js"></script>
+<link rel="stylesheet" href="/static/CSS/Ftopdf.css" />
+{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+  <form id="dataForm">
+    <label for="Pno">Production Number</label>
+    <input type="text" id="Pno" name="Pno" placeholder="e.g. PN-1234" required />
+
+    <label for="Dno">Drawing Number</label>
+    <input type="text" id="Dno" name="Dno" placeholder="e.g. DRW-5678" required />
+
+    <label for="imageUpload">Upload Images</label>
+    <input type="file" id="imageUpload" name="images" accept="image/*" multiple />
+
+    <div id="imagePreview" class="preview-container"></div>
+
+    <div class="btn-group">
+      <button type="submit" class="btn download">Download PDF</button>
+      <button type="button" id="deleteSelected" class="btn delete">Delete Selected</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- jsPDF (needed only for the Download step) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        integrity="sha512-/7aYt0qEsltU9xO2U7M2X3c8bQm0h2ZkJ+wyIGh/1x2qWg1lPhvQ5N8yD1qe3YkNoymCxVf3+zqv6H2qon9V0w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Your page logic -->
+
+{% endblock %}

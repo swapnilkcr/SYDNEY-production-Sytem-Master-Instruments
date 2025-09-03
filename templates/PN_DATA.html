@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Scheduled Jobs{% endblock %}
+
+{% block head %}
+<!-- Page-specific JS and CSS -->
+<script src="/static/JS/pn_data.js"></script>
+<link rel="stylesheet" href="/static/CSS/scheduledjobs.css">
+{% endblock %}
+
+{% block content %}
+
+
+<!-- Filter Controls -->
+<div class="filter-container" id="filterContainer">
+    <div class="filter-controls">
+        <select id="filter-column">
+            <option value="all">All Columns</option>
+            <option value="1">PN</option>
+            <option value="2">REQU-DATE</option>
+            <option value="3">CUST</option>
+        </select>
+        <input type="text" id="filter-input" placeholder="Type to filter...">
+        <button class="clear-filters" id="clear-filters">Clear</button>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="tab-info">
+    <div class="color-item">
+        <div class="color-box orange"></div>
+        <p>JOB is 3 days near required Date</p>
+    </div>
+    <div class="color-item">
+        <div class="color-box red"></div>
+        <p>Job is past due date</p>
+    </div>
+</div>
+
+<!-- Edit Controls -->
+<div id="edit-controls">
+    <button id="save-edit-btn" class="btn btn-primary">Save Changes</button>
+    <button id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+</div>
+
+<!-- Data Table -->
+<table id="pn-data-table" class="table table-bordered table-striped">
+    <thead id="pn-data-header"></thead>
+    <tbody id="pn-data-table-body"></tbody>
+</table>
+
+<!-- Delete Job Modal -->
+
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Finished Jobs{% endblock %}
+
+{% block head %}
+
+<script src="/static/JS/finished_jobs.js"></script>
+
+<link rel="stylesheet" href="/static/CSS/finished_jobs.css">
+
+
+{% endblock %}
+
+{% block content %}
+  <header class="finished_jobs">
+    <h1 class="h1">Finished Jobs</h1>
+  </header>
+
+  <div class="search-export-bar">
+    <input type="text" id="custName" class="search-input" placeholder="🔍 Search by Customer Name..."
+      onkeyup="searchByCustName()">
+    <button onclick="exportToExcel()" class="export-btn">
+      ⬇️ Download Excel
+    </button>
+  </div>
+
+
+  </div>
+
+  <div id="finished-jobs-container">
+    <table id="jobsTable">
+    </table>
+  </div>
+  <div class="pagination">
+    <button id="prevPage" onclick="prevPage()">Previous</button>
+    <span id="pageNumber">Page 1</span>
+    <button id="nextPage" onclick="nextFinishedPage()">Next</button>
+  </div>
+{% endblock %}

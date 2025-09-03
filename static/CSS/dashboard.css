@@ -1,0 +1,118 @@
+    
+    
+    body {
+        background: linear-gradient(45deg, silver, transparent);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+
+
+    h2.mb-4 {
+        padding: 20px;
+        background: #003865;
+        color: white;
+        width: 100%;
+    }
+
+    .widget {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        padding: 24px;
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .widget:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    .widget h5 {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #343a40;
+    }
+
+    .TimeSummary {
+        width: 100%;
+    }
+
+    ul li {
+        margin-bottom: 0.4rem;
+        border-bottom: 1px solid lightgrey;
+        padding: 5px;
+    }
+
+    .container {
+        max-width: 90%;
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        width: 60%;
+        margin: auto;
+        gap: 30px;
+    }
+
+    .transition {
+        transition: transform 0.3s ease;
+    }
+
+    .rotated {
+        transform: rotate(180deg);
+    }
+
+    h2.mb-4 {
+        margin: 0px !important;
+    }
+
+    nav.navbar {
+        padding: 0px;
+    }
+
+    ul.navbar1 {
+        display: flex;
+        width: 100%;
+        flex-direction: row-reverse;
+        background: white;
+        padding: 15px;
+        list-style: none;
+        gap: 55px;
+        font-weight: 600;
+    }
+
+    .job-cards {
+        width: 25%;
+        text-align: center;
+    }
+
+    .job-cards span {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .modal .modal-content {
+    width: auto;
+    height: auto;
+}
+
+li{
+    display: flex;
+    justify-content: left;
+}
+
+/* Fix for expanded Time Summary logs */
+#clockLogsCollapse {
+  max-height: 250px !important;   /* Limit height */
+  overflow-y: auto !important;    /* Vertical scroll */
+  overflow-x: auto !important;    /* Horizontal scroll if needed */
+}
+
+#clockLogsCollapse table {
+  width: 100% !important;         /* Ensure table fits container */
+  table-layout: auto !important;  /* Prevent overflow */
+  word-wrap: break-word !important;
+}

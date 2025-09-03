@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Test Records{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+<script src="/static/JS/TestRecords.js"></script>
+
+<link rel="stylesheet" href="/static/CSS/TestRecords.css">
+
+
+{% endblock %}
+
+{% block content %}
+  <div class="records-page container-narrow">
+    <h1 id="HEADING_1" class="page-title">Production Test Records</h1>
+
+    <div class="filters-card">
+      <div class="filters-grid">
+        <div>
+          <label class="lbl">Column</label>
+          <select id="filter-column" class="form-control">
+            <option value="all">All Columns</option>
+            <option value="1">DATE</option>
+            <option value="2">PN</option>
+            <option value="3">DRAW NO</option>
+            <option value="4">No/Cell</option>
+            <option value="5">CUSTOMER</option>
+            <option value="6">QTY</option>
+            <option value="7">AV</option>
+            <option value="8">ESTIMATED TIME</option>
+            <option value="9">TOTAL HOURS WORKED</option>
+            <option value="10">UNIT PRICE</option>
+            <option value="11">REMAINING TIME</option>
+            <option value="12">TEST TIME</option>
+            <option value="13">ORDER NO</option>
+            <option value="14">BILL PRICE</option>
+            <option value="15">PROFIT</option>
+            <option value="16">STOCK CODE</option>
+            <option value="17">SALESMAN</option>
+            <option value="18">CUSTOMER CODE</option>
+          </select>
+        </div>
+
+        <div class="w-100-sm">
+          <label class="lbl">Search</label>
+          <input type="text" id="filter-input" class="form-control" placeholder="Type to filter...">
+        </div>
+
+        <div>
+          <label class="lbl">From</label>
+          <input type="date" id="from-date" class="form-control">
+        </div>
+        <div>
+          <label class="lbl">To</label>
+          <input type="date" id="to-date" class="form-control">
+        </div>
+
+        <div class="actions-right">
+          <button class="btn btn-light clear-filters" id="clear-filters">Clear</button>
+          <button id="download-report" class="btn btn-success">Download Report (DOCX)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table id="testRecords" class="table table-sm">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Image modal -->
+    <div id="imageModal" class="image-modal">
+      <span class="close">&times;</span>
+      <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Comment modal -->
+    <div id="commentModal" class="comment-modal">
+      <div class="comment-modal-inner">
+        <span class="close" onclick="closeCommentModal()">&times;</span>
+        <h3>Add Comment for PN: <span id="commentPn"></span></h3>
+        <textarea id="commentText"></textarea>
+        <button onclick="saveComment()" class="btn btn-primary">Save Comment</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
