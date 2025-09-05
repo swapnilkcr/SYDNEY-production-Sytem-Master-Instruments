@@ -1,22 +1,31 @@
-const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = "http://10.0.0.80:4003";
-
 // finished_jobs.js
-let currentPage = 1;
-const pageSize = 10;
-let totalPages = 1;
 
-// Wait for BASE_URL from main.js, or proceed if it already exists
+// Pagination state (renamed to avoid clashing with main.js)
+let finishedJobsPage = 1;
+const finishedJobsPageSize = 10;
+let finishedJobsTotalPages = 1;
+
+// Wait for BASE_URL from main.js
 document.addEventListener("DOMContentLoaded", () => {
-  fetchFinishedJobs();
+  if (typeof BASE_URL !== "undefined") {
+    fetchFinishedJobs();
+  } else {
+    console.warn("⚠️ BASE_URL not ready, waiting for main.js...");
+    const checkInterval = setInterval(() => {
+      if (typeof BASE_URL !== "undefined") {
+        clearInterval(checkInterval);
+        fetchFinishedJobs();
+      }
+    }, 200);
+  }
 });
 
 function fetchFinishedJobs() {
   const searchTerm = document.getElementById("custName")?.value.trim() || "";
-  const url = `${backendBaseUrl}/view-finished-jobs?page=${currentPage}&page_size=${pageSize}`
+  const url = `${BASE_URL}/view-finished-jobs?page=${finishedJobsPage}&page_size=${finishedJobsPageSize}`;
     + (searchTerm ? `&custName=${encodeURIComponent(searchTerm)}` : '');
 
-    console.log("🌍 Fetching:", url);
+  console.log("🌍 Fetching:", url);
 
   fetch(url)
     .then(response => response.json())
@@ -27,7 +36,8 @@ function fetchFinishedJobs() {
     })
     .catch(error => {
       console.error('Error:', error);
-      document.getElementById('finished-jobs-container').innerHTML = '<p>Error loading finished jobs.</p>';
+      document.getElementById('finished-jobs-container').innerHTML =
+        '<p>Error loading finished jobs.</p>';
     });
 }
 
@@ -44,7 +54,6 @@ function renderTable(data) {
     let columns = Object.keys(data.jobs[0]);
     console.log("👉 Columns detected:", Object.keys(data.jobs[0]));
     console.log("👉 First row data:", data.jobs[0]);
-
 
     // Remove "EXCLUDE_SAVE_TIME" from visible columns
     columns = columns.filter(col => col !== "EXCLUDE_SAVE_TIME");
@@ -79,31 +88,33 @@ function renderTable(data) {
 }
 
 function updatePaginationControls(data) {
-  totalPages = data.total_pages || 1;
+  finishedJobsTotalPages = data.total_pages || 1;
   const pageNumberEl = document.getElementById('pageNumber');
-  if (pageNumberEl) pageNumberEl.textContent = `Page ${currentPage} of ${totalPages}`;
+  if (pageNumberEl) {
+    pageNumberEl.textContent = `Page ${finishedJobsPage} of ${finishedJobsTotalPages}`;
+  }
 
   const prevBtn = document.getElementById('prevPage');
   const nextBtn = document.getElementById('nextPage');
-  if (prevBtn) prevBtn.disabled = currentPage === 1;
-  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+  if (prevBtn) prevBtn.disabled = finishedJobsPage === 1;
+  if (nextBtn) nextBtn.disabled = finishedJobsPage >= finishedJobsTotalPages;
 }
 
-// Global functions for pagination/search (used by inline handlers in HTML)
+// Pagination helpers
 function nextFinishedPage() {
-  if (currentPage < totalPages) {
-    currentPage++;
+  if (finishedJobsPage < finishedJobsTotalPages) {
+    finishedJobsPage++;
     fetchFinishedJobs();
   }
 }
-function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
+function prevFinishedPage() {
+  if (finishedJobsPage > 1) {
+    finishedJobsPage--;
     fetchFinishedJobs();
   }
 }
 function searchByCustName() {
-  currentPage = 1;
+  finishedJobsPage = 1;
   fetchFinishedJobs();
 }
 
@@ -114,7 +125,7 @@ function exportToExcel() {
     return;
   }
   const searchTerm = document.getElementById("custName")?.value.trim() || "";
-  const url = `${backendBaseUrl}/view-finished-jobs?page=1&page_size=10000`
+  const url = `${BASE_URL}/view-finished-jobs?page=1&page_size=10000`
     + (searchTerm ? `&custName=${encodeURIComponent(searchTerm)}` : '');
 
   fetch(url)
@@ -149,8 +160,8 @@ function exportToExcel() {
     });
 }
 
-// Expose functions to global scope (for inline HTML handlers)
+// Expose functions globally (for inline HTML)
 window.nextFinishedPage = nextFinishedPage;
-window.prevPage = prevPage;
+window.prevFinishedPage = prevFinishedPage;
 window.searchByCustName = searchByCustName;
 window.exportToExcel = exportToExcel;

@@ -1,5 +1,5 @@
     const BACKEND_IP = "10.0.0.80";
-    const backendBaseUrl = "http://10.0.0.80:4003";
+    
     
     let timeChartInstance = null;
     let barChartInstance = null;
@@ -7,7 +7,7 @@
     async function loadJobData(jobId) {
       if (!jobId) return;
       try {
-        const res = await fetch(`${backendBaseUrl}/get-full-job-data?jobId=${jobId}`);
+        const res = await fetch(`${BASE_URL}/get-full-job-data?jobId=${jobId}`);
         const data = await res.json();
 
         const pn = data.pnData || {};
@@ -143,7 +143,7 @@
 
     async function loadJobSuggestions() {
       try {
-        const res = await fetch(`${backendBaseUrl}/get-all-job-ids`);
+        const res = await fetch(`${BASE_URL}/get-all-job-ids`);
         const data = await res.json();
         const datalist = document.getElementById("jobSuggestions");
         datalist.innerHTML = "";
@@ -167,7 +167,7 @@
 
     loadJobSuggestions();
     function updateJobStatusSummary() {
-      fetch(`${backendBaseUrl}/get-job-status-summary`)
+      fetch(`${BASE_URL}/get-job-status-summary`)
         .then(res => res.json())
         .then(data => {
           document.getElementById('total-jobs').textContent = data.total;
@@ -189,7 +189,7 @@
       // Ensure Bootstrap resets aria-hidden and sets focus properly
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-      fetch(`${backendBaseUrl}/get-not-started-jobs`)
+      fetch(`${BASE_URL}/get-not-started-jobs`)
         .then(res => res.json())
         .then(data => {
           const list = document.getElementById('not-started-list');
