@@ -1,9 +1,9 @@
 
 // Define backend URL
-// const backendBaseUrl = `http://10.0.0.80:${window.location.port === "3004" ? 3003 : 3000}`;
+// const BASE_URL = `http://10.0.0.80:${window.location.port === "3004" ? 3003 : 3000}`;
 
 const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = "http://10.0.0.80:4003";
+
 
 
 let currentEditRow = null;
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchPNData() {
         console.log("Fetching PN_DATA...");
-        fetch(`${backendBaseUrl}/get-pn-data`, {
+        fetch(`${BASE_URL}/get-pn-data`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         })

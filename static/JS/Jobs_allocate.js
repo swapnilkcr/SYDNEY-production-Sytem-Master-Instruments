@@ -1,5 +1,5 @@
 const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = "http://10.0.0.80:4003";
+
 
 // When "Backorder" button is clicked, toggle backorder for selected jobs (in DB)
 async function toggleBackorder() {
@@ -13,7 +13,7 @@ async function toggleBackorder() {
     const jobIds = selectedJobs.map(card => card.dataset.id);
 
     try {
-        const res = await fetch(`${backendBaseUrl}/set-backorder`, {
+        const res = await fetch(`${BASE_URL}/set-backorder`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -36,8 +36,8 @@ async function toggleBackorder() {
 async function loadSelectionData() {
     try {
         const [jobsRes, staffRes] = await Promise.all([
-            fetch(`${backendBaseUrl}/get-jobs`),
-            fetch(`${backendBaseUrl}/get-staff`)
+            fetch(`${BASE_URL}/get-jobs`),
+            fetch(`${BASE_URL}/get-staff`)
         ]);
 
         const jobs = await jobsRes.json();
@@ -113,7 +113,7 @@ async function assignSelected() {
     }
 
     try {
-        const response = await fetch(`${backendBaseUrl}/allocate-jobs`, {
+        const response = await fetch(`${BASE_URL}/allocate-jobs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only run if these elements exist
     if (!staffCardsContainer || !jobModal || !closeBtn) return;
 
-    fetch(`${backendBaseUrl}/get-staff`)
+    fetch(`${BASE_URL}/get-staff`)
         .then(response => response.json())
         .then(data => {
             if (Array.isArray(data.staff)) {
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>Click to view allocated jobs</p>
                     `;
                     staffCard.addEventListener('click', () => {
-                        fetch(`${backendBaseUrl}/get-allocated-jobs?staffName=${encodeURIComponent(staffName)}`)
+                        fetch(`${BASE_URL}/get-allocated-jobs?staffName=${encodeURIComponent(staffName)}`)
                             .then(response => response.json())
                             .then(data => {
                                 const tbody = document.querySelector('#jobsTable tbody');

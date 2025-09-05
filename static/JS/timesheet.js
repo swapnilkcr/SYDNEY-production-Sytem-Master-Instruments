@@ -1,5 +1,5 @@
 const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = "http://10.0.0.80:4003";
+
 
 function searchCSVData() {
     const Drawing_Number = document.getElementById('drawing-number').value.trim();
@@ -31,7 +31,7 @@ async function fetchCSVData(Drawing_Number = null) {
     const errorMsg = document.getElementById('error-message');
 
     try {
-        const url = `${backendBaseUrl}/get-csv-data?Drawing_Number=${encodeURIComponent(Drawing_Number)}`;
+        const url = `${BASE_URL}/get-csv-data?Drawing_Number=${encodeURIComponent(Drawing_Number)}`;
         console.log(`🌐 Fetching from: ${url}`);
 
         const response = await fetch(url);

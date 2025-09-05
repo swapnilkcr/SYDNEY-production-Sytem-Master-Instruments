@@ -139,7 +139,7 @@
 
 
         try {
-          const response = await fetch(`${backendBaseUrl}/add_job`, {
+          const response = await fetch(`${BASE_URL}/add_job`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
@@ -162,7 +162,7 @@
 
 
       function fetchByDrawingNumber(drawingNo) {
-        fetch(`${backendBaseUrl}/get-job-data-by-drawing?Drawing_Number=${encodeURIComponent(drawingNo)}`)
+        fetch(`${BASE_URL}/get-job-data-by-drawing?Drawing_Number=${encodeURIComponent(drawingNo)}`)
           .then(response => response.json())
           .then(data => {
             if (data.success) {

@@ -1967,7 +1967,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 job_id = data['jobId']
                 stop_time = get_current_timestamp()  # Get the current timestamp
 
-                with sqlite3.connect('sydney.db') as conn:
+                with sqlite3.connect(DB_NAME) as conn:
                     cursor = conn.cursor()
                     cursor.execute('''
                         UPDATE ClockInOut
@@ -2007,7 +2007,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Staff Name is required.")
 
                 # Insert into Users table
-                conn = sqlite3.connect('sydney.db')  # use your DB file name
+                conn = sqlite3.connect(DB_NAME)  # use your DB file name
                 cursor = conn.cursor()
                 cursor.execute("INSERT INTO Staff (staffName) VALUES (?)", (staff_name,))
                 conn.commit()
@@ -2049,7 +2049,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Staff Name is required for deletion.")
 
                 # Connect to DB
-                conn = sqlite3.connect('sydney.db')
+                conn = sqlite3.connect(DB_NAME)
                 cursor = conn.cursor()
 
                 # Delete from Staff table
@@ -2180,7 +2180,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Job ID is required for deletion.")
 
                 # Database connection and deletion
-                conn = sqlite3.connect('sydney.db')  # Replace with your actual DB connection
+                conn = sqlite3.connect(DB_NAME)  # Replace with your actual DB connection
                 cursor = conn.cursor()
 
                 # First check if job exists

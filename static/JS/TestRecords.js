@@ -1,5 +1,5 @@
 const BACKEND_IP = "10.0.0.80";
-const backendBaseUrl = "http://10.0.0.80:4003";
+
 
 let isEditMode = false;
 // Load records on page load
@@ -9,7 +9,7 @@ let currentCommentPn = '';
 
 async function loadTestRecords() {
     try {
-        const url = `${backendBaseUrl}/api/test-records`;
+        const url = `${BASE_URL}/api/test-records`;
         console.log("🌍 Fetching:", url);
 
         const response = await fetch(url);
@@ -134,7 +134,7 @@ async function renderRecords(records) {
                     <td>${record.stock_code || ''}</td>
                     <td class="pdf-cell">
                         ${parseInt(record.has_pdf) === 1 ?
-                `<a href="${backendBaseUrl}/get-pdf?pn=${record.PN}" class="pdf-link" target="_blank">${record.pdf_name || 'View PDF'}</a>` :
+                `<a href="${BASE_URL}/get-pdf?pn=${record.PN}" class="pdf-link" target="_blank">${record.pdf_name || 'View PDF'}</a>` :
                 `<input type="file" onchange="uploadPDF('${record.PN}', this)">`
             }
                     </td>
@@ -215,7 +215,7 @@ async function saveEdit(pn) {
     });
 
     try {
-        const response = await fetch(`${backendBaseUrl}/update-test-record`, {
+        const response = await fetch(`${BASE_URL}/update-test-record`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pn, updates })
@@ -272,7 +272,7 @@ async function uploadPDF(pn, input) {
     formData.append('file', file);
 
     try {
-        const response = await fetch(`${backendBaseUrl}/upload-test-pdf`, {
+        const response = await fetch(`${BASE_URL}/upload-test-pdf`, {
             method: 'POST',
             body: formData
         });
@@ -287,7 +287,7 @@ async function uploadPDF(pn, input) {
         // Success - dynamically update the row
         const row = document.querySelector(`tr[data-pn="${pn}"]`);
         const pdfCell = row.querySelector('.pdf-cell');
-        pdfCell.innerHTML = `<a href="${backendBaseUrl}/get-pdf?pn=${pn}" class="pdf-link" target="_blank">${file.name}</a>`;
+        pdfCell.innerHTML = `<a href="${BASE_URL}/get-pdf?pn=${pn}" class="pdf-link" target="_blank">${file.name}</a>`;
         alert('PDF uploaded successfully!');
     } catch (error) {
         console.error('Upload failed:', error);
@@ -421,7 +421,7 @@ function formatFileSize(bytes) {
 // refresh pdf status
 async function refreshPDFStatus(pn) {
     try {
-        const response = await fetch(`${backendBaseUrl}/refresh-pdf-status?pn=${pn}`);
+        const response = await fetch(`${BASE_URL}/refresh-pdf-status?pn=${pn}`);
         if (!response.ok) throw new Error('Refresh failed');
         loadTestRecords();
     } catch (error) {
@@ -449,7 +449,7 @@ async function saveComment() {
     const comment = document.getElementById('commentText').value.trim();
 
     try {
-        const response = await fetch(`${backendBaseUrl}/update-test-record`, {
+        const response = await fetch(`${BASE_URL}/update-test-record`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -547,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Get filtered data
                 // NEW (returns JSON)
-                const response = await fetch(`${backendBaseUrl}/api/test-records`);
+                const response = await fetch(`${BASE_URL}/api/test-records`);
 
                 const allRecords = await response.json();
 
