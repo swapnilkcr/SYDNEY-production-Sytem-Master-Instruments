@@ -2104,3 +2104,17 @@ button#jobs-status-btn {
 
 
 /*navbar*/
+span#navbar-username {
+    font-size: 20px;
+}
+
+::before {
+    font-size: 25px;
+}
+
+/*.navbar .navbar-brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+*/
