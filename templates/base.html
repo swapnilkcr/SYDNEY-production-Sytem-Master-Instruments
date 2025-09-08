@@ -42,18 +42,28 @@
     <div class="container-fluid">
       <button class="btn btn-primary me-2" type="button" data-bs-toggle="offcanvas"
         data-bs-target="#offcanvasSidebar">☰</button>
-      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-        <img src="/static/Images/logo-minew.png" alt="Logo" height="32" class="logo-cropped" />
-        <span class="fw-semibold">Master Instruments</span>
-      </a>
+
+      <div class="d-flex justify-content-center flex-grow-1">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+          <img src="/static/Images/logo-minew.png" alt="Logo" height="32" class="logo-cropped" />
+          <span class="fw-semibold">Master Instruments</span>
+        </a>
+      </div>
 
 
+      <!-- User info -->
+      <div id="user-info" class="d-flex align-items-center ms-auto me-3">
+        <i class="bi bi-person-circle me-1"></i>
+        <span id="navbar-username" class="fw-semibold">Guest</span>
+      </div>
 
+      <!-- Navbar collapse -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
         <span class="navbar-toggler-icon"></span>
       </button>
+
       <div class="collapse navbar-collapse" id="topNav">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav ms-auto">
 
           <li class="nav-item dropdown me-2">
             <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
@@ -68,8 +78,6 @@
               <li><a class="dropdown-item" href="#" id="openDeleteStaffModal">Delete Staff</a></li>
             </ul>
           </li>
-
-
 
           <li class="nav-item dropdown me-2">
             <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"
@@ -87,14 +95,17 @@
               <li><a class="dropdown-item" href="/Products_test_records">Test Records</a></li>
             </ul>
           </li>
-          <li class="nav-item logout"><a href="#" id="logout" class="nav-link fw-semibold" onclick="logout()">Logout</a>
+
+          <!-- Single logout link -->
+          <li class="nav-item">
+            <a href="#" id="logout" class="nav-link fw-semibold">Logout</a>
           </li>
 
-          <li class="nav-item d-flex align-items-center me-2" id="usericon">
         </ul>
       </div>
     </div>
   </nav>
+
 
   <!-- Sidebar -->
   <div class="offcanvas offcanvas-start" id="offcanvasSidebar">

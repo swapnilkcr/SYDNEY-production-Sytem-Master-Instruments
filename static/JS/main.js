@@ -13,6 +13,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const stopBtn = document.getElementById("stop-btn");
     const messageDiv = document.getElementById("message");
     const finishBtn = document.getElementById("finish-btn");
+    const usernameEl = document.getElementById("navbar-username");
+    const logoutLink = document.getElementById("logout");
+    const userRole = localStorage.getItem("userRole") || "staff"; // default staff
+
+    if (usernameEl) {
+        const storedUser = localStorage.getItem("username") || "Guest";
+        usernameEl.textContent = storedUser;
+    }
+
+    document.querySelectorAll("[data-role='admin-only']").forEach(el => {
+        if (userRole.toLowerCase() !== "admin") {
+            el.style.display = "none"; // hide button for staff
+        } else {
+            el.style.display = "inline-block"; // show for admin
+        }
+    });
+
+    if (logoutLink) {
+        logoutLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("username");
+            localStorage.removeItem("userRole");
+            window.location.href = "Login"; // redirect to login page
+        });
+    }
 
     if (startBtn) startBtn.disabled = true;
 

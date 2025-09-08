@@ -40,6 +40,21 @@ print(f"🌐 Running on port: {PORT}")
 PRODUCT_PHOTOS = 'PRODUCT PHOTOS'  # Folder to store uploaded PDFs
 os.makedirs(PRODUCT_PHOTOS, exist_ok=True)  # Ensure the folder exists
 
+# ✅ Enable WAL mode for better concurrency (run once at startup)
+try:
+    conn = sqlite3.connect(DB_NAME, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
+    conn.close()
+    print("✅ SQLite WAL mode enabled")
+except Exception as e:
+    print("⚠️ Could not enable WAL mode:", e)
+
+# ✅ Helper function to always return a safe connection
+def get_db_connection():
+    """Return a SQLite connection with timeout & autocommit enabled."""
+    return sqlite3.connect(DB_NAME, timeout=30, isolation_level=None)
+
 
 
 
@@ -138,7 +153,8 @@ def calculate_estimated_time(job_id):
     try:
         print(f"DEBUG: Called calculate_estimated_time() with job_id={job_id}")  # ✅ Ensure function is called
 
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         print("Using DB at:", os.path.abspath(DB_NAME))
         cursor = conn.cursor()
 
@@ -167,7 +183,8 @@ def calculate_estimated_time(job_id):
        
 # Calculate Total Hours Worked by all users for a job
 def get_total_hours_worked(job_id):
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_db_connection()
+
     cursor = conn.cursor()
     cursor.execute('''
         SELECT COALESCE(SUM(
@@ -189,7 +206,8 @@ def get_job_details(job_id):
     """Fetch customer name, drawing number, cell number, quantity, and required date from the database based on job_id (PN)."""
     try:
         # Connect to the database
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         cursor = conn.cursor()
 
         # Query to fetch all required job details
@@ -226,7 +244,8 @@ def get_job_details(job_id):
 def get_av_by_stock_code(stock_code):
     """Fetch AV and DrawNo based on STOCKCODE from the database."""
     try:
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         cursor = conn.cursor()
 
         cursor.execute('SELECT AV, DrawNo FROM MergedData WHERE STOCKCODE = ?', (stock_code,))
@@ -242,7 +261,8 @@ def get_job_work_details(job_id):
     try:
         print(f"DEBUG: Called get_job_work_details() with job_id={job_id}")
 
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         cursor = conn.cursor()
 
         # Fetch estimated time
@@ -321,7 +341,8 @@ def get_job_work_details(job_id):
 def get_pn_data_details(pn_id):
     """Fetch job details directly from the PN_DATA table."""
     try:
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         cursor = conn.cursor()
 
         # Fetch job details from PN_DATA table for the given PN
@@ -370,7 +391,8 @@ def update_testrecord_from_clock(job_id):
     print(f"🔄 [DEBUG] update_testrecord_from_clock called for job_id = {job_id}")
     """Update TestRecords for the given PN from current ClockInOut values."""
     try:
-        conn = sqlite3.connect(DB_NAME)
+        conn = get_db_connection()
+
         cursor = conn.cursor()
 
         # Calculate total_time (excluding QC)
@@ -586,7 +608,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         elif self.path == '/get-staff':
             try:
                 import os
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 cursor.execute("SELECT StaffID, StaffName FROM Staff ORDER BY StaffName;")
@@ -615,7 +638,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/get-jobs':
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 cursor.execute("""
@@ -668,7 +692,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     return
 
                 # Connect to the database
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
 
@@ -723,7 +748,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             
         elif self.path == '/get-totallaborcost':
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Query to fetch Job IDs and their total labor costs
@@ -771,7 +797,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 filter_column = query_params.get('filter_column', ['all'])[0]
                 filter_value = query_params.get('filter_value', [''])[0].lower()
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # --- BASE QUERY (no WHERE here). NOTE: Task added right after JobID ---
@@ -905,7 +932,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
         elif self.path == '/get-pn-data':
             conn = None
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 
                 # List of column names you want to hide
@@ -980,7 +1008,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 q = parse_qs(parsed.query)
                 task = q.get('task', [None])[0]  # e.g. /view-running-jobs?task=Welding
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 sql = """
@@ -1066,7 +1095,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 search_term = query_params.get('custName', [''])[0]
                 offset = (page - 1) * page_size
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='JOBSFINISHED'")
@@ -1169,7 +1199,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 print(f"🔍 Received Drawing_Number: {Drawing_Number} (Type: {type(Drawing_Number)})")
 
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Build query based on file_name
@@ -1237,7 +1268,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 query_params = parse_qs(parsed_url.query)
                 drawing_number = query_params.get('Drawing_Number', [None])[0]
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 
                 # Get latest csv_data
@@ -1359,7 +1391,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Job ID is required'}).encode())
                     return
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM ClockInOut WHERE JobID = ?", (job_id,))
                 count = cursor.fetchone()[0]
@@ -1391,7 +1424,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Job ID is required'}).encode())
                     return
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM ClockInOut WHERE JobID = ?", (job_id,))
                 count = cursor.fetchone()[0]
@@ -1415,7 +1449,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 pn = self.path.split('?pn=')[1]
                 file_path = os.path.join(PRODUCT_PHOTOS, f"{pn}.pdf")
                 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 exists = os.path.exists(file_path)
                 
@@ -1452,7 +1487,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 return
 
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # --- Determine Job Status ---
@@ -1682,7 +1718,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/get-all-job-ids':
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Pull PN and customer (aliased from CUST in PN_DATA)
@@ -1717,7 +1754,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/get-job-status-summary':
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # ✅ Total = unique PNs from PN_DATA and TestRecords
@@ -1769,7 +1807,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         elif self.path == '/get-not-started-jobs':
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 cursor.execute("""
@@ -1798,7 +1837,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
         elif self.path == "/get-in-progress-jobs":
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 cursor.execute("""
@@ -1872,7 +1912,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             start_time_str = data['startTime']
             stop_time_str = data['stopTime']
 
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO ClockInOut (StaffName, JobID, Task, StartTime, StopTime)
@@ -1907,7 +1948,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 print(f"   staffName={staff_name}, jobId={job_id}, task={task}, start_time={start_time}")
 
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # 1. Check if staff already has an active job
@@ -2007,7 +2049,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Staff Name is required.")
 
                 # Insert into Users table
-                conn = sqlite3.connect(DB_NAME)  # use your DB file name
+                conn = get_db_connection()
+  # use your DB file name
                 cursor = conn.cursor()
                 cursor.execute("INSERT INTO Staff (staffName) VALUES (?)", (staff_name,))
                 conn.commit()
@@ -2049,7 +2092,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Staff Name is required for deletion.")
 
                 # Connect to DB
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Delete from Staff table
@@ -2123,7 +2167,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
 
 
                 # Insert into database
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 try:
@@ -2180,7 +2225,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     raise ValueError("Job ID is required for deletion.")
 
                 # Database connection and deletion
-                conn = sqlite3.connect(DB_NAME)  # Replace with your actual DB connection
+                conn = get_db_connection()
+  # Replace with your actual DB connection
                 cursor = conn.cursor()
 
                 # First check if job exists
@@ -2331,7 +2377,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             new_stop = data['newStopTime']
 
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Check if the job is in progress (StopTime is NULL)
@@ -2391,7 +2438,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             record_id = data['recordId']
 
             try:
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 # --- Fetch JobID before deleting, for TestRecords sync ---
                 cursor.execute("SELECT JobID FROM ClockInOut WHERE RecordID = ?", (record_id,))
@@ -2439,7 +2487,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     }).encode())
                     return
                     
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 
                 # Check if PN exists
@@ -2625,7 +2674,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 if not mapped_updates and not dynamic_fields and not job_updates and not csv_updates:
                     raise ValueError("No valid fields to update.")
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # ✅ Update TestRecords
@@ -2774,7 +2824,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     'unit_price': 'S_PRICE'
                 }
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 for entry in data:
@@ -2877,7 +2928,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Missing job IDs'}).encode())
                     return
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
                 cursor.execute(
                     f'UPDATE PN_DATA SET backorder = ? WHERE PN IN ({",".join(["?"]*len(job_ids))})',
@@ -2922,7 +2974,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({'error': 'Missing jobs or staff'}).encode())
                     return
 
-                conn = sqlite3.connect(DB_NAME)
+                conn = get_db_connection()
+
                 cursor = conn.cursor()
 
                 # Get customer names for all jobs
@@ -3019,7 +3072,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error': 'Missing staffName or jobId'}).encode())
                 return
 
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
 
             # Ensure all entries for this job are closed
@@ -3370,7 +3424,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
 
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
 
             # Create the TestRecords table if it doesn't exist
@@ -3526,7 +3581,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = json.loads(self.rfile.read(content_length))
             
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             
             cursor.execute('''
@@ -3617,7 +3673,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 f.write(file_data)
 
                     # Update TestRecords directly
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             cursor.execute('''
                 UPDATE TestRecords
@@ -3651,7 +3708,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = json.loads(self.rfile.read(content_length))
             
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             
             # Update only the columns that exist in the schema
@@ -3711,7 +3769,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             data = json.loads(post_data.decode('utf-8'))
             
             # Connect to database
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             
             # Base query
@@ -3769,7 +3828,8 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
             data = json.loads(post_data.decode('utf-8'))
             
             # Connect to database (same filtering as Excel)
-            conn = sqlite3.connect(DB_NAME)
+            conn = get_db_connection()
+
             cursor = conn.cursor()
             
             query = '''
