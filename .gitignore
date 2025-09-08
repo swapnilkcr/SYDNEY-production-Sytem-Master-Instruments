@@ -7,3 +7,18 @@ clock_in_management.db-wal
 *.db
 
 
+# Ignore SQL queries
+Query.sql
+
+# Ignore Python cache/compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore SQLite databases
+*.db
+
+# Ignore Excel and PDF outputs
+*.xlsx
+*.pdf
