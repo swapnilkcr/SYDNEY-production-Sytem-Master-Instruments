@@ -2125,3 +2125,9 @@ span#navbar-username {
   transform: translateX(-50%);
 }
 */
+
+@media (min-width: 990px) and (max-width: 1200px) {
+  span.select2-selection.select2-selection--single {
+    width: 230px !important;
+  }
+}
