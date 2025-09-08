@@ -879,16 +879,23 @@ li.select2-results__option.select2-results__message {
 
 div#user-info {
   font-size: 15px !important;
-  margin-right: 20px;
+  margin-left: auto;   /* ensures it sticks to the right */
+  margin-right: 20px;  /* small padding from edge */
   font-family: sans-serif;
   font-style: normal;
   font-weight: 600;
+  display: flex;
+  align-items: center;
 }
 
+
 #user-info {
-  color: #374151;
-  font-weight: 500;
+  margin-left: auto !important;  /* push to right */
+  margin-right: 20px;            /* small gap from edge */
+  display: flex;
+  align-items: center;
 }
+
 
 .navbar-nav .nav-item img {
   border-radius: 50%;

@@ -647,6 +647,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ----------------- MOVE USER-INFO RESPONSIVELY -----------------
+    function moveUserInfo() {
+        const userInfo = document.getElementById("user-info");
+        const target = document.getElementById("user-info-target");
+        const navContainer = document.querySelector(".container-fluid");
+        const toggler = document.querySelector(".navbar-toggler");
+
+        if (!userInfo || !target || !navContainer || !toggler) return;
+
+        if (window.innerWidth >= 1400) {
+            // Move into collapsible menu
+            if (!target.contains(userInfo)) {
+                target.appendChild(userInfo);
+            }
+        } else {
+            // Move back before the collapsible (before the hamburger button)
+            if (!navContainer.contains(userInfo)) {
+                navContainer.insertBefore(userInfo, toggler);
+            }
+        }
+    }
+
+    // Run on load + resize
+    moveUserInfo();
+    window.addEventListener("resize", moveUserInfo);
 
 
 }); // end DOMContentLoaded
