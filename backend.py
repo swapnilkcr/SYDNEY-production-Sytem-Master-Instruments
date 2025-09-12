@@ -1008,7 +1008,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                 q = parse_qs(parsed.query)
                 task = q.get('task', [None])[0]  # e.g. /view-running-jobs?task=Welding
 
-                conn = get_db_connection()
+                conn = sqlite3.connect(DB_NAME, timeout=30, check_same_thread=False)
 
                 cursor = conn.cursor()
 
@@ -1024,7 +1024,7 @@ class ClockInOutHandler(BaseHTTPRequestHandler):
                     params.append(task)
 
                 sql += " ORDER BY c.StartTime DESC"
-                cursor.execute(sql, params)
+                execute_with_retry(cursor, sql, params)
 
                 rows = cursor.fetchall()
                 conn.close()
