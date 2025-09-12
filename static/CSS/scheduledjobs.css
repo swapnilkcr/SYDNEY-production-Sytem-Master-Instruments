@@ -219,10 +219,23 @@
     }
 
     /* Highlight rows near/past due */
-    tr.date-warning {
-        background-color: #fff4e5 !important;
-    }
+    
 
     tr.date-critical {
         background-color: #ffe5e5 !important;
+    }
+
+    .table tr.date-warning>td {
+        background-color:gold !important;
+        box-shadow: none !important;
+    }
+
+    .table tr.date-critical>td {
+        background-color: #ff4444 !important;
+        color: white !important;
+        box-shadow: none !important;
+    }
+
+    th{
+        background-color: #007bff !important;
     }
